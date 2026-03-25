@@ -14,7 +14,7 @@ export enum IsActive {
 export interface IUser {
   name: string;
   email: string;
-  role: "USER" | "ADMIN" | "GUIDE";
+  role: "SUPER_ADMIN"|"USER" | "ADMIN" | "GUIDE";
 
   auths: IAuthProvider[];
   password?: string;
