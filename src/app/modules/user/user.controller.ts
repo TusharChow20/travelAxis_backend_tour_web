@@ -1,19 +1,18 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { User } from "./user.model";
+import { UserServices } from "./user.service";
 
-const createUser = async (req: Request, res: Response) => {
+const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, email } = req.body;
-    const user = await User.create({ name, email });
+    const user = await UserServices.createUserService(req.body);
+
     res.status(201).json({
       message: "User Inserted Successfully",
       user,
     });
   } catch (error: any) {
     console.log(error);
-    res.status(400).json({
-      message: `Getting error to create user ${error.message}`,
-    });
+    next(error);
   }
 };
 
