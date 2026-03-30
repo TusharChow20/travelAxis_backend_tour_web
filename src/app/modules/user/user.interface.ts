@@ -18,6 +18,7 @@ export enum Role {
 }
 
 export interface IUser {
+  _id?: Types.ObjectId;
   name: string;
   email: string;
   role: Role;
