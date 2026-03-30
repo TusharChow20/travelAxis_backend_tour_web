@@ -1,3 +1,5 @@
+import varEnv from "../../config/env";
+import { generateToken } from "../../utils/jwt";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import bcrypt from "bcryptjs";
@@ -16,15 +18,11 @@ const loginCredentials = async (payload: Partial<IUser>) => {
     throw new Error("Incorrect Password Try Again!");
   }
 
-  const accessToken = jwt.sign(
-    {
-      userId: userExists._id,
-      email: userExists.email,
-      role: userExists.role,
-    },
-    "secret",
-    { expiresIn: "2d" },
-  );
+  const accessToken = generateToken({
+    userId: userExists._id,
+    email: userExists.email,
+    role: userExists.role,
+  },varEnv.JWT_ACCESS_SECRET,varEnv.JWT_ACCESS_EXPIRES);
 
   return {
     // email: userExists.email,
