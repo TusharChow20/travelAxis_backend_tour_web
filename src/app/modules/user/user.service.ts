@@ -1,8 +1,8 @@
 import { IAuthProvider, IUser } from "./user.interface";
 import { User } from "./user.model";
-
+import bcrypt from "bcryptjs";
 const createUserService = async (payload: Partial<IUser>) => {
-  const { name, email, ...rest } = payload;
+  const { name, email, password, ...rest } = payload;
   if (!name || !email) {
     throw new Error("Name and email are required");
   }
@@ -11,6 +11,8 @@ const createUserService = async (payload: Partial<IUser>) => {
   if (userExist) {
     throw new Error("User already exists");
   }
+
+  const hashedPassword = await bcrypt.hash(password as string, 10);
 
   const authProvider: IAuthProvider = {
     provider_name: "credentials",
@@ -21,6 +23,7 @@ const createUserService = async (payload: Partial<IUser>) => {
     name,
     email,
     auths: [authProvider],
+    password: hashedPassword,
     ...rest,
   });
   return user;
