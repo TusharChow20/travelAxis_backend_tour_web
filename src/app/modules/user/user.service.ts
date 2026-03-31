@@ -1,6 +1,8 @@
-import { IAuthProvider, IUser } from "./user.interface";
+import { JwtPayload } from "jsonwebtoken";
+import { IAuthProvider, IsActive, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
-import bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
+import varEnv from "../../config/env";
 const createUserService = async (payload: Partial<IUser>) => {
   const { name, email, password, ...rest } = payload;
   if (!name || !email) {
@@ -12,7 +14,7 @@ const createUserService = async (payload: Partial<IUser>) => {
     throw new Error("User already exists");
   }
 
-  const hashedPassword = await bcrypt.hash(password as string, 10);
+  const hashedPassword = await bcryptjs.hash(password as string, 10);
 
   const authProvider: IAuthProvider = {
     provider_name: "credentials",
@@ -40,7 +42,48 @@ const getAllUsers = async () => {
   };
 };
 
+const updateUser = async (
+  userId: string,
+  payload: Partial<IUser>,
+  decodedToken: JwtPayload,
+) => {
+  const userExists = await User.findById(userId);
+  if (!userExists) {
+    throw new Error("User not found");
+  }
+  if (userExists.isDeleted || userExists.isActive === IsActive.BLOCKED) {
+    throw new Error("This user cannot be updated");
+  }
+  if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
+    throw new Error("You are not authorized to change roles");
+  }
+
+  if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
+    throw new Error("You are not authorize to do that");
+  }
+
+  if (payload.isActive || payload.isDeleted || payload.isVerified) {
+    if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
+      throw new Error("You are not authorize to do that");
+    }
+  }
+
+  if (payload.password) {
+    payload.password = await bcryptjs.hash(
+      payload.password,
+      Number(varEnv.BCRYPT_SALT_ROUND),
+    );
+  }
+
+  const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
+    new: true,
+    runValidators: true,
+  });
+  return newUpdatedUser;
+};
+
 export const UserServices = {
   createUserService,
   getAllUsers,
+  updateUser,
 };

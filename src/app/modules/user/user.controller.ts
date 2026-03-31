@@ -3,6 +3,9 @@ import { User } from "./user.model";
 import { UserServices } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
+import { verifyToken } from "../../utils/jwt";
+import varEnv from "../../config/env";
+import { JwtPayload } from "jsonwebtoken";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -30,7 +33,32 @@ const getAllUser = catchAsync(
   },
 );
 
+const updateUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.params.id;
+    // const token = req.headers.authorization;
+    // const verifiedToken = verifyToken(
+    //   token as string,
+    //   varEnv.JWT_ACCESS_SECRET as string,
+    // ) as JwtPayload;
+    const verifiedToken = req.user;
+    const payload = req.body;
+    const user = await UserServices.updateUser(
+      userId as string,
+      payload,
+      verifiedToken,
+    );
+
+    sendResponse(res, {
+      statusCode: 201,
+      success: true,
+      message: "User Updated Successfully",
+      data: user,
+    });
+  },
+);
 export const UserControllers = {
   createUser,
   getAllUser,
+  updateUser,
 };

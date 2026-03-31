@@ -7,5 +7,7 @@ const varEnv = {
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
   JWT_ACCESS_EXPIRES: process.env.JWT_ACCESS_EXPIRES,
   BCRYPT_SALT_ROUND: process.env.BCRYPT_SALT_ROUND,
+  SUPER_ADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL,
+  SUPER_ADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD,
 };
 export default varEnv;

@@ -2,6 +2,7 @@ import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./app";
 import varEnv from "./app/config/env";
+import { seedSuperAdmin } from "./app/utils/seedSuperAdmin";
 let server: Server;
 const PORT = varEnv.PORT;
 const mongo_uri = varEnv.MONGO_URI;
@@ -21,7 +22,10 @@ const startServer = async () => {
     console.log("Error--> ", error);
   }
 };
-startServer();
+(async () => {
+  startServer();
+  seedSuperAdmin();
+})();
 
 process.on("unhandledRejection", () => {
   console.log("Server shutting down");
