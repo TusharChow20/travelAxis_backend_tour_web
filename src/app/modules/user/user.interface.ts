@@ -31,6 +31,6 @@ export interface IUser {
   isActive?: IsActive;
   isVerified?: boolean;
   isDeleted?: boolean;
-  bookings: Types.ObjectId[];
+  bookings?: Types.ObjectId[];
   guides?: Types.ObjectId[];
 }
