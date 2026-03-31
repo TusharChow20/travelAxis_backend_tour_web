@@ -19,6 +19,7 @@ export const checkAuthentication =
       if (!roles.includes(verifyToken1.role)) {
         throw new Error("Forbidden: Insufficient permissions");
       }
+      req.user = verifyToken1;
       console.log(verifyToken1);
       next();
     } catch (error) {

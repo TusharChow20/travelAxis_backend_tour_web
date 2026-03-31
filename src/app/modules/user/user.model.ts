@@ -22,7 +22,7 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ["SUPER_ADMIN", "USER", "ADMIN", "GUIDE"],
       default: "USER",
-    },
+    } as any,
     phone: { type: String },
     address: { type: String },
     picture: { type: String },
