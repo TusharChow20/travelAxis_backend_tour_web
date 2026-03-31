@@ -5,7 +5,11 @@ import { router } from "./app/routes";
 import { success } from "zod";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import { notFound } from "./app/middlewares/notFound";
+
+import cookieParser from "cookie-parser";
 const app = express();
+
+app.use(cookieParser());
 //call the json for getting or sending the jsonb data
 app.use(express.json());
 //cors implement

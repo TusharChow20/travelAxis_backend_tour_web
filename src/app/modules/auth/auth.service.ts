@@ -1,9 +1,10 @@
 import varEnv from "../../config/env";
-import { generateToken } from "../../utils/jwt";
+import { generateToken, verifyToken } from "../../utils/jwt";
+import { userToken } from "../../utils/userToken";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 const loginCredentials = async (payload: Partial<IUser>) => {
   const { email, password } = payload;
   if (!email || !password) {
@@ -23,23 +24,32 @@ const loginCredentials = async (payload: Partial<IUser>) => {
   if (!passwordMatched) {
     throw new Error("Incorrect Password Try Again!");
   }
+  const userTokens = userToken(userExists);
 
-  const accessToken = generateToken(
-    {
-      userId: userExists._id,
-      email: userExists.email,
-      role: userExists.role,
-    },
-    varEnv.JWT_ACCESS_SECRET as string,
-    varEnv.JWT_ACCESS_EXPIRES as string,
-  );
+  const { password: pass, ...rest } = userExists.toObject();
 
   return {
     // email: userExists.email,
-    accessToken,
+    accessToken: userTokens.accessToken,
+    refreshToken: userTokens.refreshToken,
+    user: rest,
+  };
+};
+const getNewAccessToken = async (refreshToken: string) => {
+  const verifyRefreshToken = verifyToken(refreshToken,varEnv.REFRESH_TOKEN_SECRET as string) as JwtPayload
+
+  const userExists = await User.findOne({ email: verifyRefreshToken.email });
+  if (!userExists) {
+    throw new Error("User not exists");
+  }
+  const userTokens = userToken(userExists);
+
+  return {
+    accessToken: userTokens.accessToken,
   };
 };
 
 export const authServices = {
   loginCredentials,
+  getNewAccessToken
 };
