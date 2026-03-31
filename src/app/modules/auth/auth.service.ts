@@ -1,6 +1,9 @@
 import varEnv from "../../config/env";
 import { generateToken, verifyToken } from "../../utils/jwt";
-import { userToken } from "../../utils/userToken";
+import {
+  createNewAccessTokenWithRefreshToken,
+  userToken,
+} from "../../utils/userToken";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import bcrypt from "bcryptjs";
@@ -36,20 +39,13 @@ const loginCredentials = async (payload: Partial<IUser>) => {
   };
 };
 const getNewAccessToken = async (refreshToken: string) => {
-  const verifyRefreshToken = verifyToken(refreshToken,varEnv.REFRESH_TOKEN_SECRET as string) as JwtPayload
-
-  const userExists = await User.findOne({ email: verifyRefreshToken.email });
-  if (!userExists) {
-    throw new Error("User not exists");
-  }
-  const userTokens = userToken(userExists);
-
+  const newAccessToken = await createNewAccessTokenWithRefreshToken(refreshToken);
   return {
-    accessToken: userTokens.accessToken,
+    accessToken: newAccessToken,
   };
 };
 
 export const authServices = {
   loginCredentials,
-  getNewAccessToken
+  getNewAccessToken,
 };
