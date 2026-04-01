@@ -1,15 +1,23 @@
 import express, { NextFunction, Request, Response } from "express";
-import { UserRoutes } from "./app/modules/user/user.route";
 import cors from "cors";
 import { router } from "./app/routes";
-import { success } from "zod";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import { notFound } from "./app/middlewares/notFound";
-
+import expressSession from "express-session";
 import cookieParser from "cookie-parser";
+import passport from "passport";
 const app = express();
-
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(
+  expressSession({
+    secret: "Your Secret",
+    resave: false,
+    saveUninitialized: false,
+  }),
+);
 app.use(cookieParser());
+
 //call the json for getting or sending the jsonb data
 app.use(express.json());
 //cors implement
