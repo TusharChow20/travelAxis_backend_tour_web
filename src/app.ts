@@ -6,9 +6,11 @@ import { notFound } from "./app/middlewares/notFound";
 import expressSession from "express-session";
 import cookieParser from "cookie-parser";
 import passport from "passport";
+import "./app/config/passport";
+
 const app = express();
-app.use(passport.initialize());
-app.use(passport.session());
+
+app.use(cookieParser());
 app.use(
   expressSession({
     secret: "Your Secret",
@@ -16,7 +18,8 @@ app.use(
     saveUninitialized: false,
   }),
 );
-app.use(cookieParser());
+app.use(passport.initialize());
+app.use(passport.session());
 
 //call the json for getting or sending the jsonb data
 app.use(express.json());

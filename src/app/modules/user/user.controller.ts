@@ -38,6 +38,14 @@ const updateUser = catchAsync(
     const userId = req.params.id;
 
     const verifiedToken = req.user;
+    if (!verifiedToken) {
+      return sendResponse(res, {
+        statusCode: 401,
+        success: false,
+        message: "User not authenticated",
+        data: null,
+      });
+    }
     const payload = req.body;
     const user = await UserServices.updateUser(
       userId as string,
