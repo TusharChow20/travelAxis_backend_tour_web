@@ -3,6 +3,8 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { authServices } from "./auth.service";
 import { setAuthCookie } from "../../utils/setCokkie";
+import { userToken } from "../../utils/userToken";
+import varEnv from "../../config/env";
 
 const loginCredentials = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -58,6 +60,14 @@ const resetPassword = catchAsync(
     const getNewPassword = req.body.newPassword;
 
     const decodedToken = req.user;
+    if (!decodedToken) {
+      return sendResponse(res, {
+        statusCode: 401,
+        success: false,
+        message: "User not authenticated",
+        data: null,
+      });
+    }
     await authServices.resetPassword(oldPassword, getNewPassword, decodedToken);
     sendResponse(res, {
       statusCode: 201,
@@ -67,10 +77,33 @@ const resetPassword = catchAsync(
     });
   },
 );
+const googleCallBack = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    let state = req.query.state ? (req.query.state as string) : "";
+
+    if (state.startsWith("/")) {
+      state = state.slice(1);
+    }
+    if (!user) {
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    const tokenInfo = userToken(user);
+    setAuthCookie(res, tokenInfo);
+    res.redirect(`${varEnv.FRONTEND_URL as string}/${state}`);
+  },
+);
 
 export const authControllers = {
   loginCredentials,
   getNewAccessToken,
   logout,
   resetPassword,
+  googleCallBack,
 };
