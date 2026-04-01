@@ -6,7 +6,7 @@ import {
 } from "../../utils/userToken";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
-import bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 const loginCredentials = async (payload: Partial<IUser>) => {
   const { email, password } = payload;
@@ -20,7 +20,7 @@ const loginCredentials = async (payload: Partial<IUser>) => {
   if (!userExists) {
     throw new Error("User not exists");
   }
-  const passwordMatched = await bcrypt.compare(
+  const passwordMatched = await bcryptjs.compare(
     password as string,
     userExists.password as string,
   );
@@ -39,13 +39,38 @@ const loginCredentials = async (payload: Partial<IUser>) => {
   };
 };
 const getNewAccessToken = async (refreshToken: string) => {
-  const newAccessToken = await createNewAccessTokenWithRefreshToken(refreshToken);
+  const newAccessToken =
+    await createNewAccessTokenWithRefreshToken(refreshToken);
   return {
     accessToken: newAccessToken,
   };
+};
+const resetPassword = async (
+  oldPassword: string,
+  newPassword: string,
+  decodedToken: JwtPayload,
+) => {
+  const user = await User.findById(decodedToken.userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  const matchOldPass = await bcryptjs.compare(
+    oldPassword,
+    user.password as string,
+  );
+  if (!matchOldPass) {
+    throw new Error("Password wrong ");
+  }
+  const newPasswordHashed = await bcryptjs.hash(
+    newPassword,
+    Number(varEnv.BCRYPT_SALT_ROUND),
+  );
+  user.password = newPasswordHashed;
+  user.save();
 };
 
 export const authServices = {
   loginCredentials,
   getNewAccessToken,
+  resetPassword,
 };
