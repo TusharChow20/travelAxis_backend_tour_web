@@ -7,6 +7,7 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log(err);
   res.status(500).json({
     success: false,
     message: `Getting error in global error ${err.message}`,

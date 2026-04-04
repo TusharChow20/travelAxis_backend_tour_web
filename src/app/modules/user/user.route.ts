@@ -1,4 +1,4 @@
-import {  Router } from "express";
+import { Router } from "express";
 import { UserControllers } from "./user.controller";
 import { createUserSchemaZodValidation } from "./user.validation";
 import { validateUserRequest } from "../../middlewares/userValidateRequest";
@@ -19,7 +19,7 @@ router.get(
 );
 router.patch(
   "/:id",
-  validateUserRequest(createUserSchemaZodValidation),
+  // validateUserRequest(createUserSchemaZodValidation),
   checkAuthentication(...Object.values(Role)),
   UserControllers.updateUser,
 );

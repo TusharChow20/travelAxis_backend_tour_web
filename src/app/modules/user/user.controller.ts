@@ -47,6 +47,8 @@ const updateUser = catchAsync(
       });
     }
     const payload = req.body;
+
+    console.log(payload);
     const user = await UserServices.updateUser(
       userId as string,
       payload,

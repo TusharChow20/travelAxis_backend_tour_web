@@ -5,18 +5,33 @@ import { authServices } from "./auth.service";
 import { setAuthCookie } from "../../utils/setCokkie";
 import { userToken } from "../../utils/userToken";
 import varEnv from "../../config/env";
+import passport from "passport";
 
 const loginCredentials = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const userLoginCredentials = await authServices.loginCredentials(req.body);
-    setAuthCookie(res, userLoginCredentials);
+    passport.authenticate("local", async (error: any, user: any, info: any) => {
+      if (error) {
+        return next(error);
+      }
 
-    sendResponse(res, {
-      statusCode: 201,
-      success: true,
-      message: "Login Successful",
-      data: userLoginCredentials,
-    });
+      if (!user) {
+        return next(new Error(info.message));
+      }
+
+      const userTokens = userToken(user);
+      const { password: pass, ...rest } = user.toObject();
+
+      sendResponse(res, {
+        statusCode: 201,
+        success: true,
+        message: "Login Successful",
+        data: {
+          accessToken: userTokens.accessToken,
+          refreshToken: userTokens.refreshToken,
+          user: rest,
+        },
+      });
+    })(req, res, next);
   },
 );
 const getNewAccessToken = catchAsync(
