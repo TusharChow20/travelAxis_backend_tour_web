@@ -10,6 +10,8 @@ const mongo_uri = varEnv.MONGO_URI;
 if (!mongo_uri) {
   throw new Error("MONGO_URI is not defined");
 }
+
+
 const startServer = async () => {
   try {
     await mongoose.connect(mongo_uri);
