@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import app from "../../app";
+import { ZodError } from "zod";
 
 export const globalErrorHandler = (
   err: any,
@@ -7,9 +7,22 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  console.log(err);
-  res.status(500).json({
+
+  if (err instanceof ZodError) {
+    const formattedErrors = err.issues.map((e) => ({
+      field: e.path.join("."),
+      message: e.message,
+    }));
+
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      errors: formattedErrors,
+    });
+  }
+
+  res.status(err.statusCode || 500).json({
     success: false,
-    message: `Getting error in global error ${err.message}`,
+    message: err.message || "Internal server error",
   });
 };
