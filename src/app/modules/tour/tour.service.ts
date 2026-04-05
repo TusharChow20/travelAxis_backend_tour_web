@@ -19,6 +19,8 @@ const createTour = async (payload: Partial<ITour>) => {
   return tour;
 };
 
+// const getAllTours = async(payload)
+
 export const TourService = {
   createTour,
 };
