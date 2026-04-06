@@ -14,6 +14,7 @@ const createTour = catchAsync(
     });
   },
 );
+
 export const TourController = {
   createTour,
 };
