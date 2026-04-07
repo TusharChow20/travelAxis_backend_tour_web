@@ -40,7 +40,7 @@ const updateDivision = async (id: string, payload: Partial<IDivision>) => {
 
     let counter = 0;
     while (await Division.exists({ slug })) {
-      slug = `${baseSlug}-division-${counter++}`; 
+      slug = `${baseSlug}-division-${counter++}`;
     }
 
     payload.slug = slug;
@@ -50,7 +50,7 @@ const updateDivision = async (id: string, payload: Partial<IDivision>) => {
       _id: { $ne: id },
     });
     if (duplicateDivision) {
-      throw new Error("A division with this name already exists.");
+      throw new Error("Division already exists.");
     }
   }
 
@@ -65,9 +65,18 @@ const deleteDivision = async (id: string) => {
   await Division.findByIdAndDelete(id);
   return null;
 };
+
+const getSingleDivision = async (slug: string) => {
+  const division = await Division.findOne({ slug });
+  return {
+    data: division,
+  };
+};
+
 export const DivisionService = {
   createDivision,
   deleteDivision,
   updateDivision,
   getAllDivisions,
+  getSingleDivision,
 };

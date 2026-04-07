@@ -23,4 +23,6 @@ router.delete(
   DivisionControllers.deleteDivision,
 );
 
+router.get("/:slug", DivisionControllers.getSingleDivision);
+
 export const DivisionRoute = router;
