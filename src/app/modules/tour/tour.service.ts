@@ -2,13 +2,20 @@ import { ITour } from "./tour.interface";
 import { Tour } from "./tour.model";
 
 const createTour = async (payload: Partial<ITour>) => {
-  const { slug, title, ...rest } = payload;
-  if (!slug) {
-    throw new Error("Slug is required");
-  }
+  const { title, ...rest } = payload;
   if (!title) {
     throw new Error("title is required");
   }
+
+  const baseSlug = title.toLowerCase().split(" ").join("-");
+  let slug = `${baseSlug}`;
+
+  let counter = 0;
+  while (await Tour.exists({ slug })) {
+    slug = `${slug}-${counter++}`;
+  }
+
+  payload.slug = slug;
 
   const tourExists = await Tour.findOne({ title });
 
@@ -24,6 +31,17 @@ const updateTour = async (id: string, payload: Partial<ITour>) => {
 
   if (!existingTour) {
     throw new Error("Tour not found.");
+  }
+  if (payload.title) {
+    const baseSlug = payload.title.toLowerCase().split(" ").join("-");
+    let slug = `${baseSlug}`;
+
+    let counter = 0;
+    while (await Tour.exists({ slug })) {
+      slug = `${slug}-${counter++}`;
+    }
+
+    payload.slug = slug;
   }
 
   const updatedTour = await Tour.findByIdAndUpdate(id, payload, { new: true });
