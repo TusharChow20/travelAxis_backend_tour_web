@@ -35,6 +35,16 @@ const updateDivision = async (id: string, payload: Partial<IDivision>) => {
   }
 
   if (payload.name) {
+    const baseSlug = payload.name.toLowerCase().split(" ").join("-");
+    let slug = `${baseSlug}-division`;
+
+    let counter = 0;
+    while (await Division.exists({ slug })) {
+      slug = `${baseSlug}-division-${counter++}`; 
+    }
+
+    payload.slug = slug;
+
     const duplicateDivision = await Division.findOne({
       name: payload.name,
       _id: { $ne: id },
