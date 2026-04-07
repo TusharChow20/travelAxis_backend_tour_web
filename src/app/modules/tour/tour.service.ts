@@ -48,28 +48,21 @@ const updateTour = async (id: string, payload: Partial<ITour>) => {
 
   return updatedTour;
 };
-// const getAllTours = async (query: Record<string, string>) => {
-//   const queryBuilder = new QueryBuilder(Tour.find(), query);
+const getAllTours = async (query: Record<string, string>) => {
+  const allTour = await Tour.find(query);
 
-//   const tours = await queryBuilder
-//     // .search(tourSearchableFields)
-//     .filter()
-//     .sort()
-//     .fields()
-//     .paginate();
+  const totalTours = await Tour.countDocuments();
+  return {
+    data: allTour,
 
-//   const [data, meta] = await Promise.all([
-//     tours.build(),
-//     queryBuilder.getMeta(),
-//   ]);
-
-//   return {
-//     data,
-//     meta,
-//   };
-// };
+    meta: {
+      total: totalTours,
+    },
+  };
+};
 
 export const TourService = {
   createTour,
   updateTour,
+  getAllTours,
 };

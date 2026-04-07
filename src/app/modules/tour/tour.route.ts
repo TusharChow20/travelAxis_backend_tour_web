@@ -22,4 +22,5 @@ router.patch(
   TourController.updateTour,
 );
 
+router.get("/", TourController.getAllTours);
 export const TourRoute = router;
