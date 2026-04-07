@@ -2,9 +2,10 @@ import { IDivision } from "./division.interface";
 import { Division } from "./division.model";
 
 const createDivision = async (payload: Partial<IDivision>) => {
-  const { name, slug, ...rest } = payload;
+  const { name, ...rest } = payload;
   if (!name) throw new Error("Name is required");
-  if (!slug) throw new Error("Slug is required");
+  const slug = `${name.toLowerCase().split(" ").join("-")}-division`;
+
   const divisionExists = await Division.findOne({ name });
   if (divisionExists) {
     throw new Error("Division already exists");

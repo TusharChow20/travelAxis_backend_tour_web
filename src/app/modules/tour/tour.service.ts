@@ -19,8 +19,39 @@ const createTour = async (payload: Partial<ITour>) => {
   return tour;
 };
 
-// const getAllTours = async(payload)
+const updateTour = async (id: string, payload: Partial<ITour>) => {
+  const existingTour = await Tour.findById(id);
+
+  if (!existingTour) {
+    throw new Error("Tour not found.");
+  }
+
+  const updatedTour = await Tour.findByIdAndUpdate(id, payload, { new: true });
+
+  return updatedTour;
+};
+// const getAllTours = async (query: Record<string, string>) => {
+//   const queryBuilder = new QueryBuilder(Tour.find(), query);
+
+//   const tours = await queryBuilder
+//     // .search(tourSearchableFields)
+//     .filter()
+//     .sort()
+//     .fields()
+//     .paginate();
+
+//   const [data, meta] = await Promise.all([
+//     tours.build(),
+//     queryBuilder.getMeta(),
+//   ]);
+
+//   return {
+//     data,
+//     meta,
+//   };
+// };
 
 export const TourService = {
   createTour,
+  updateTour,
 };

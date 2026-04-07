@@ -1,25 +1,43 @@
 import z from "zod";
 
-export const createTourZodValidation = z.object({
-  slug: z.string(),
+export const createTourZodSchema = z.object({
   title: z.string(),
-
   description: z.string().optional(),
-  images: z.array(z.string()).optional(),
   location: z.string().optional(),
   costFrom: z.number().optional(),
-
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
-
+  startDate: z.string().optional().optional(),
+  endDate: z.string().optional().optional(),
+  tourType: z.string(), 
   included: z.array(z.string()).optional(),
   excluded: z.array(z.string()).optional(),
   amenities: z.array(z.string()).optional(),
   tourPlan: z.array(z.string()).optional(),
-
-  maxPeople: z.number(),
+  maxGuest: z.number().optional(),
   minAge: z.number().optional(),
-
   division: z.string(),
-  tourDuration: z.string(),
+  departureLocation: z.string().optional(),
+  arrivalLocation: z.string().optional(),
+});
+
+export const updateTourZodSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  location: z.string().optional(),
+  costFrom: z.number().optional(),
+  startDate: z.string().optional().optional(),
+  endDate: z.string().optional().optional(),
+  tourType: z.string().optional(),
+  included: z.array(z.string()).optional(),
+  excluded: z.array(z.string()).optional(),
+  amenities: z.array(z.string()).optional(),
+  tourPlan: z.array(z.string()).optional(),
+  maxGuest: z.number().optional(),
+  minAge: z.number().optional(),
+  departureLocation: z.string().optional(),
+  arrivalLocation: z.string().optional(),
+});
+
+
+export const createTourDurationZodSchema = z.object({
+    name: z.string(),
 });
