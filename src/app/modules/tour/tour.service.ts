@@ -1,5 +1,6 @@
 import { ITour } from "./tour.interface";
 import { Tour } from "./tour.model";
+import { QueryBuilder } from "../../utils/QueryBuilderClass";
 
 const createTour = async (payload: Partial<ITour>) => {
   const { title, ...rest } = payload;
@@ -48,45 +49,26 @@ const updateTour = async (id: string, payload: Partial<ITour>) => {
 
   return updatedTour;
 };
+
 const getAllTours = async (query: Record<string, string>) => {
   const tourFields = ["title", "description", "location"];
-  const searchTerms = query.searchTerm || "";
-  const sort = query.sort || "-createdAt";
-  const fields = query.fields?.split(",").join(" ") || "";
 
-  const page = Number(query.page) || 1;
-  const limit = Number(query.limit) || 10;
-  const skip = (page - 1) * limit;
-  const searchArray = tourFields.map((field) => ({
-    [field]: { $regex: searchTerms, $options: "i" },
-  }));
+  const queryBuilder = new QueryBuilder(Tour.find(), query);
 
-  const deleteField = ["searchTerm", "sort", "fields", "page", "limit"];
-  for (const field of deleteField) {
-    delete query[field];
-  }
-
-  const filterQuery = {
-    $or: searchArray,
-    ...query,
-  };
-
-  const allTour = await Tour.find(filterQuery)
-    .sort(sort)
-    .select(fields)
-    .skip(skip)
-    .limit(limit);
-
-  const totalTours = await Tour.countDocuments(filterQuery);
+  const [allTour, meta] = await Promise.all([
+    queryBuilder
+      .search(tourFields)
+      .filter()
+      .sort()
+      .fields()
+      .pagination()
+      .build(),
+    queryBuilder.getMeta(),
+  ]);
 
   return {
     data: allTour,
-    meta: {
-      total: totalTours,
-      page,
-      limit,
-      totalPages: Math.ceil(totalTours / limit),
-    },
+    meta,
   };
 };
 
