@@ -51,14 +51,23 @@ const updateTour = async (id: string, payload: Partial<ITour>) => {
 const getAllTours = async (query: Record<string, string>) => {
   const tourFields = ["title", "description", "location"];
   const searchTerms = query.searchTerm || "";
-  delete query["searchTerm"];
-
+  const sort = query.sort || "-createdAt";
+  const fields = query.fields?.split(",").join(" ") || "";
   const searchArray = tourFields.map((field) => ({
     [field]: { $regex: searchTerms, $options: "i" },
   }));
+
+  const deleteField = ["searchTerm", "sort", "fields"];
+  for (const field of deleteField) {
+    delete query[field];
+  }
+
   const allTour = await Tour.find({
     $or: searchArray,
-  } as any).find(query);
+  } as any)
+    .find(query)
+    .sort(sort)
+    .select(fields);
 
   const totalTours = await Tour.countDocuments();
   return {
