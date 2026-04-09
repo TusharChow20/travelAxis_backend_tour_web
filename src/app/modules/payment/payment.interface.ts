@@ -7,7 +7,7 @@ export enum PAYMENT_STATUS {
 
   REFUNDED = "REFUNDED",
 }
-export interface Payment {
+export interface IPayment {
   bookingId: Types.ObjectId;
   transactionId: string;
   amount: number;
