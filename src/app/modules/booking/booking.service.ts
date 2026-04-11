@@ -1,5 +1,6 @@
 import { PAYMENT_STATUS } from "../payment/payment.interface";
 import { Payment } from "../payment/payment.model";
+import { ISSLCOMMERZ } from "../sslCommerz/sslCommerz.interface";
 import { SSLService } from "../sslCommerz/sslCommerz.service";
 import { Tour } from "../tour/tour.model";
 import { User } from "../user/user.model";
@@ -70,9 +71,24 @@ const createBooking = async (payload: Partial<IBooking>, userId: string) => {
       .populate("user", "name email phone address")
       .populate("tour", "title costFrom")
       .populate("payment");
+    const userAddress = (updatedBooking?.user as any).address;
+    const userEmail = (updatedBooking?.user as any).email;
+    const userPhone = (updatedBooking?.user as any).phone;
+    const userName = (updatedBooking?.user as any).name;
 
+    const sslPayload: ISSLCOMMERZ = {
+      address: userAddress,
+      email: userEmail,
+      phone: userPhone,
+
+      name: userName,
+
+      amount: amount,
+      transactionId: transactionId,
+    };
+    const sslPayment = await SSLService.sslPaymentInitialize(sslPayload);
     await session.commitTransaction();
-    return updatedBooking;
+    return { paymentUrl: sslPayment.GatewayPageURL, booking: updatedBooking };
   } catch (error) {
     await session.abortTransaction();
     throw error;

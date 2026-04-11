@@ -11,7 +11,7 @@ const sslPaymentInitialize = async (payload: ISSLCOMMERZ) => {
       total_amount: payload.amount,
       currency: "BDT",
       tran_id: payload.transactionId,
-      success_url: varEnv.SSL.SSL_SUCCESS_URL_BACKEND,
+      success_url: `${varEnv.SSL.SSL_SUCCESS_URL_BACKEND}?transactionId=${payload.transactionId}`,
       fail_url: varEnv.SSL.SSL_FAIL_URL_BACKEND,
       cancel_url: varEnv.SSL.SSL_CANCEL_URL_BACKEND,
 
@@ -50,7 +50,7 @@ const sslPaymentInitialize = async (payload: ISSLCOMMERZ) => {
       url: varEnv.SSL.SSL_PAYMENT_API!,
 
       data: data,
-      headers: { "content-type": "application/x-www-from-urlencoded" },
+      headers: { "content-type": "application/x-www-form-urlencoded" },
     });
     return response.data;
   } catch (error) {
