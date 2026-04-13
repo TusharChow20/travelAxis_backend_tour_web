@@ -12,8 +12,8 @@ const sslPaymentInitialize = async (payload: ISSLCOMMERZ) => {
       currency: "BDT",
       tran_id: payload.transactionId,
       success_url: `${varEnv.SSL.SSL_SUCCESS_URL_BACKEND}?transactionId=${payload.transactionId}`,
-      fail_url: varEnv.SSL.SSL_FAIL_URL_BACKEND,
-      cancel_url: varEnv.SSL.SSL_CANCEL_URL_BACKEND,
+      fail_url: `${varEnv.SSL.SSL_FAIL_URL_BACKEND}?transactionId=${payload.transactionId}`,
+      cancel_url: `${varEnv.SSL.SSL_CANCEL_URL_BACKEND}?transactionId=${payload.transactionId}`,
 
       shipping_method: "N/A",
 

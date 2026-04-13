@@ -11,8 +11,22 @@ const successPayment = catchAsync(async (req: Request, res: Response) => {
     res.redirect(varEnv.SSL.SSL_SUCCESS_URL_FRONTEND as string);
   }
 });
-const failPayment = catchAsync(async (req: Request, res: Response) => {});
-const cancelPayment = catchAsync(async (req: Request, res: Response) => {});
+const failPayment = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.failPayment(
+    req.query as Record<string, string>,
+  );
+  if (!result.success) {
+    res.redirect(varEnv.SSL.SSL_FAIL_URL_FRONTEND as string);
+  }
+});
+const cancelPayment = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.cancelPayment(
+    req.query as Record<string, string>,
+  );
+  if (!result.success) {
+    res.redirect(varEnv.SSL.SSL_CANCEL_URL_FRONTEND as string);
+  }
+});
 export const PaymentController = {
   successPayment,
   failPayment,
