@@ -1,5 +1,7 @@
 import { BOOKING_STATUS } from "../booking/booking.interface";
 import { Booking } from "../booking/booking.model";
+import { ISSLCOMMERZ } from "../sslCommerz/sslCommerz.interface";
+import { SSLService } from "../sslCommerz/sslCommerz.service";
 import { PAYMENT_STATUS } from "./payment.interface";
 import { Payment } from "./payment.model";
 
@@ -93,8 +95,37 @@ const cancelPayment = async (query: Record<string, string>) => {
     throw error;
   }
 };
+const initializePayment = async (bookingId: string) => {
+  const bookingPayment = await Payment.findOne({ bookingId: bookingId });
+
+  console.log(bookingPayment);
+  if (!bookingPayment) {
+    throw new Error("Booking does not exists");
+  }
+
+  const booking = await Booking.findById(bookingId);
+
+  const userAddress = (booking?.user as any).address;
+  const userEmail = (booking?.user as any).email;
+  const userPhone = (booking?.user as any).phone;
+  const userName = (booking?.user as any).name;
+
+  const sslPayload: ISSLCOMMERZ = {
+    address: userAddress,
+    email: userEmail,
+    phone: userPhone,
+
+    name: userName,
+
+    amount: bookingPayment.amount,
+    transactionId: bookingPayment.transactionId,
+  };
+  const sslPayment = await SSLService.sslPaymentInitialize(sslPayload);
+  return { paymentUrl: sslPayment.GatewayPageURL };
+};
 export const PaymentService = {
   successPayment,
   failPayment,
   cancelPayment,
+  initializePayment,
 };
