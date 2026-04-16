@@ -2,14 +2,24 @@ import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { TourService } from "./tour.service";
 import { sendResponse } from "../../utils/sendResponse";
+import { ITour } from "./tour.interface";
 
 const createTour = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const tour = await TourService.createTour(req.body);
+    const body = req.body.data ? JSON.parse(req.body.data) : req.body;
+
+    const files = req.files as Express.Multer.File[];
+
+    const payload: ITour = {
+      ...body,
+      images: files?.map((file) => file.path),
+    };
+
+    const tour = await TourService.createTour(payload);
     sendResponse(res, {
       statusCode: 201,
       success: true,
-      message: "User Inserted Successfully",
+      message: "Tour Inserted Successfully",
       data: tour,
     });
   },
