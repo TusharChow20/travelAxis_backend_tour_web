@@ -25,5 +25,8 @@ export const deleteImageFromCloud = async (url: string): Promise<void> => {
   }
 };
 
-export default cloudinary;
+export const deleteImagesFromCloud = async (urls: string[]): Promise<void> => {
+  await Promise.all(urls.map((url) => deleteImageFromCloud(url)));
+};
 
+export default cloudinary;

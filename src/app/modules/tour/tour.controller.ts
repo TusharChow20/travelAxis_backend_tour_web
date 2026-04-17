@@ -4,15 +4,24 @@ import { TourService } from "./tour.service";
 import { sendResponse } from "../../utils/sendResponse";
 import { ITour } from "./tour.interface";
 
+
+const parseBody = (body: any): Record<string, unknown> => {
+  if (!body?.data || body.data === "undefined") return body ?? {};
+  try {
+    return JSON.parse(body.data);
+  } catch {
+    return body;
+  }
+};
+
 const createTour = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const body = req.body.data ? JSON.parse(req.body.data) : req.body;
-
+    const body = parseBody(req.body); 
     const files = req.files as Express.Multer.File[];
 
-    const payload: ITour = {
+    const payload: Partial<ITour> = {
       ...body,
-      images: files?.map((file) => file.path),
+      images: files?.map((file) => file.path) ?? [],
     };
 
     const tour = await TourService.createTour(payload);
@@ -27,7 +36,15 @@ const createTour = catchAsync(
 
 const updateTour = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id as string;
-  const result = await TourService.updateTour(id, req.body);
+  const body = parseBody(req.body); // ✅ safe
+  const files = req.files as Express.Multer.File[];
+
+  const payload: Partial<ITour> = {
+    ...body,
+    ...(files?.length > 0 && { images: files.map((file) => file.path) }),
+  };
+
+  const result = await TourService.updateTour(id, payload);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -35,17 +52,18 @@ const updateTour = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
 const getAllTours = catchAsync(async (req: Request, res: Response) => {
   const query = req.query as Record<string, string>;
-
   const result = await TourService.getAllTours(query);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Tour updated successfully",
+    message: "Tours retrieved successfully",
     data: result,
   });
 });
+
 export const TourController = {
   createTour,
   updateTour,
