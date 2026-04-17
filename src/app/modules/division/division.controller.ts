@@ -34,8 +34,14 @@ const getAllDivisions = catchAsync(async (req: Request, res: Response) => {
 });
 const updateDivision = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id as string;
+  const body = req.body.data ? JSON.parse(req.body.data) : req.body;
 
-  const result = await DivisionService.updateDivision(id, req.body);
+  const payload: Partial<IDivision> = {
+    ...body,
+    ...(req.file?.path && { thumbnail: req.file.path }), // only set if new file uploaded
+  };
+
+  const result = await DivisionService.updateDivision(id, payload);
   sendResponse(res, {
     statusCode: 200,
     success: true,

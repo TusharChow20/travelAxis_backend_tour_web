@@ -15,7 +15,7 @@ export const globalErrorHandler = async (
   // Delete multiple files on error
   if (req.files && Array.isArray(req.files) && req.files.length > 0) {
     const imageUrls = (req.files as Express.Multer.File[]).map(
-      (file) => file.path, //
+      (file) => file.path, 
     );
     await Promise.all(imageUrls.map((url) => deleteImageFromCloud(url)));
   }

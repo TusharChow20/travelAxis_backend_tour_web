@@ -17,6 +17,8 @@ router.get("/", DivisionControllers.getAllDivisions);
 router.patch(
   "/:id",
   checkAuthentication(Role.ADMIN, Role.SUPER_ADMIN),
+
+  multerUpload.single("thumbnail"),
   DivisionControllers.updateDivision,
 );
 router.delete(
