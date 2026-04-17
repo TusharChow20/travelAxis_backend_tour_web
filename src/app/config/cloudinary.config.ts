@@ -6,4 +6,24 @@ cloudinary.config({
   api_key: varEnv.CLOUDINARY.CLOUDINARY_API_KEY as string,
   api_secret: varEnv.CLOUDINARY.CLOUDINARY_API_SECRET as string,
 });
+
+export const deleteImageFromCloud = async (url: string): Promise<void> => {
+  try {
+    const urlParts = url.split("/");
+    const uploadIndex = urlParts.indexOf("upload");
+    const publicIdWithExtension = urlParts.slice(uploadIndex + 2).join("/");
+    const publicId = publicIdWithExtension.replace(/\.[^/.]+$/, ""); // strip extension
+
+    const result = await cloudinary.uploader.destroy(publicId);
+
+    if (result.result !== "ok") {
+      throw new Error(`Cloudinary delete failed: ${result.result}`);
+    }
+  } catch (error) {
+    console.error("deleteImageFromCloud error:", error);
+    throw error;
+  }
+};
+
 export default cloudinary;
+
