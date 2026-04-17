@@ -7,11 +7,13 @@ import {
   createTourDurationZodSchema,
   updateTourZodSchema,
 } from "./tour.validate";
+import { multerUpload } from "../../config/multer.config";
 
 const router = Router();
 router.post(
   "/create-tour",
   checkAuthentication(Role.ADMIN, Role.SUPER_ADMIN),
+  multerUpload.array("files"),
   TourController.createTour,
 );
 

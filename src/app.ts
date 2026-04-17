@@ -23,6 +23,7 @@ app.use(passport.session());
 
 //call the json for getting or sending the jsonb data
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 //cors implement
 app.use(cors());
 
