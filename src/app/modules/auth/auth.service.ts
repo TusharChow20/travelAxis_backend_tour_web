@@ -45,6 +45,29 @@ const getNewAccessToken = async (refreshToken: string) => {
     accessToken: newAccessToken,
   };
 };
+const changePassword = async (
+  oldPassword: string,
+  newPassword: string,
+  decodedToken: JwtPayload,
+) => {
+  const user = await User.findById(decodedToken.userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  const matchOldPass = await bcryptjs.compare(
+    oldPassword,
+    user.password as string,
+  );
+  if (!matchOldPass) {
+    throw new Error("Password wrong ");
+  }
+  const newPasswordHashed = await bcryptjs.hash(
+    newPassword,
+    Number(varEnv.BCRYPT_SALT_ROUND),
+  );
+  user.password = newPasswordHashed;
+  user.save();
+};
 const resetPassword = async (
   oldPassword: string,
   newPassword: string,
@@ -68,9 +91,28 @@ const resetPassword = async (
   user.password = newPasswordHashed;
   user.save();
 };
+const setPassword = async (userId: string, password: string) => {
+  const user = await User.findById(userId); 
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (user.password) {
+    throw new Error("Password already set. Use change-password instead.");
+  }
+
+  const hashedPassword = await bcryptjs.hash(
+    password,
+    Number(varEnv.BCRYPT_SALT_ROUND),
+  );
+  user.password = hashedPassword;
+  await user.save(); 
+};
 
 export const authServices = {
   loginCredentials,
   getNewAccessToken,
   resetPassword,
+  changePassword,
+  setPassword,
 };
