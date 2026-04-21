@@ -17,6 +17,8 @@ router.get(
   checkAuthentication(Role.ADMIN, Role.SUPER_ADMIN),
   UserControllers.getAllUser,
 );
+
+router.get("/me",checkAuthentication(...Object.values(Role)), UserControllers.getMe)
 router.patch(
   "/:id",
   // validateUserRequest(createUserSchemaZodValidation),

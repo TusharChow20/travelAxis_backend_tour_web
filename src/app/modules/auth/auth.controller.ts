@@ -6,6 +6,7 @@ import { setAuthCookie } from "../../utils/setCokkie";
 import { userToken } from "../../utils/userToken";
 import varEnv from "../../config/env";
 import passport from "passport";
+import { JwtPayload } from "jsonwebtoken";
 
 const loginCredentials = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -49,22 +50,45 @@ const getNewAccessToken = catchAsync(
 );
 const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-
-      secure: false,
-      sameSite: "lax",
+    req.logout((err) => {
+      if (err) return next(err);
     });
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
 
-      secure: false,
-      sameSite: "lax",
+    req.session.destroy((err) => {
+      if (err) return next(err);
     });
+
+    res.clearCookie("accessToken", { httpOnly: true, secure: false, sameSite: "lax" });
+    res.clearCookie("refreshToken", { httpOnly: true, secure: false, sameSite: "lax" });
+    res.clearCookie("connect.sid", { httpOnly: true, secure: false, sameSite: "lax" });
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Logout Successful",
+      data: null,
+    });
+  },
+);
+const changePassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const oldPassword = req.body.oldPassword;
+    const getNewPassword = req.body.newPassword;
+
+    const decodedToken = req.user;
+    if (!decodedToken) {
+      return sendResponse(res, {
+        statusCode: 401,
+        success: false,
+        message: "User not authenticated",
+        data: null,
+      });
+    }
+    await authServices.resetPassword(oldPassword, getNewPassword, decodedToken);
     sendResponse(res, {
       statusCode: 201,
       success: true,
-      message: "logout Successful",
+      message: "Password changed Successful",
       data: null,
     });
   },
@@ -114,6 +138,38 @@ const googleCallBack = catchAsync(
     res.redirect(`${varEnv.FRONTEND_URL as string}/${state}`);
   },
 );
+const setPassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { password } = req.body;
+    const decodedToken = req.user as JwtPayload;
+
+    if (!decodedToken) {
+      return sendResponse(res, {
+        statusCode: 401,
+        success: false,
+        message: "User not authenticated",
+        data: null,
+      });
+    }
+
+    if (!password) {
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: "Password is required",
+        data: null,
+      });
+    }
+
+    await authServices.setPassword(decodedToken.userId, password);
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Password set successfully",
+      data: null,
+    });
+  },
+);
 
 export const authControllers = {
   loginCredentials,
@@ -121,4 +177,6 @@ export const authControllers = {
   logout,
   resetPassword,
   googleCallBack,
+  changePassword,
+  setPassword,
 };
