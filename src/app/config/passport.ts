@@ -6,9 +6,10 @@ import {
 } from "passport-google-oauth20";
 import varEnv from "./env";
 import { User } from "../modules/user/user.model";
-import { Role } from "../modules/user/user.interface";
+import { IsActive, Role } from "../modules/user/user.interface";
 import { Strategy as localStrategy } from "passport-local";
 import bcryptjs from "bcryptjs";
+
 passport.use(
   new GoogleStrategy(
     {
@@ -27,11 +28,24 @@ passport.use(
         if (!email) {
           return done(null, false, { message: "No email found" });
         }
+
         let user = await User.findOne({ email });
+
+        if (user && user.isDeleted) {
+          return done(null, false, {
+            message: "Your account has been deleted",
+          });
+        }
+
+        if (user && user.isActive !== IsActive.ACTIVE) {
+          return done(null, false, {
+            message: "Your account is not active",
+          });
+        }
+
         if (!user) {
           user = await User.create({
             email,
-
             name: profile.displayName,
             picture: profile.photos?.[0]?.value || "",
             role: Role.USER,
@@ -44,9 +58,10 @@ passport.use(
             ],
           });
         }
+
         return done(null, user);
       } catch (error) {
-        console.log("Error in google credentials");
+        console.log("Error in google strategy:", error);
         return done(error);
       }
     },
@@ -62,44 +77,65 @@ passport.use(
     async (email: string, password: string, done) => {
       try {
         const userExists = await User.findOne({ email });
+
         if (!userExists) {
-          return done(null, false, { message: "User does not exists" });
+          return done(null, false, { message: "User does not exist" });
         }
+        if (userExists.isDeleted) {
+          return done(null, false, {
+            message: "Your account has been deleted",
+          });
+        }
+
+        if (userExists.isActive !== IsActive.ACTIVE) {
+          return done(null, false, {
+            message: "Your account is not active",
+          });
+        }
+
         const userGoogleAuthenticated = userExists.auths.some(
-          (providerObjects) => providerObjects.provider_name == "google",
+          (providerObjects) => providerObjects.provider_name === "google",
         );
+
         if (userGoogleAuthenticated && !userExists.password) {
           return done(null, false, {
             message: "You are authenticated with google",
           });
         }
+
         const passwordMatched = await bcryptjs.compare(
-          password as string,
+          password,
           userExists.password as string,
         );
+
         if (!passwordMatched) {
-          return done(null, false, { message: "Password  not matched" });
+          return done(null, false, { message: "Password not matched" });
         }
+
         return done(null, userExists);
       } catch (error) {
-        console.log(error);
-
+        console.log("Error in local strategy:", error);
         done(error);
       }
     },
   ),
 );
 
-passport.serializeUser((user: any, done: (err: any, id?: unknown) => void) => {
+passport.serializeUser((user: any, done) => {
   done(null, user._id);
 });
 
-passport.deserializeUser(async (id: string, done: any) => {
+passport.deserializeUser(async (id: string, done) => {
   try {
     const user = await User.findById(id);
+
+    if (!user || user.isDeleted || user.isActive !== IsActive.ACTIVE) {
+      return done(null, false);
+    }
+
     done(null, user);
   } catch (error) {
-    console.log(error);
+    console.log("Error in deserializeUser:", error);
     done(error);
   }
 });
