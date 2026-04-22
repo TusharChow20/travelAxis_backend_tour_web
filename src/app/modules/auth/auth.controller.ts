@@ -11,19 +11,13 @@ import { JwtPayload } from "jsonwebtoken";
 const loginCredentials = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     passport.authenticate("local", async (error: any, user: any, info: any) => {
-      if (error) {
-        return next(error);
-      }
-
-      if (!user) {
-        return next(new Error(info.message));
-      }
+      if (error) return next(error);
+      if (!user) return next(new Error(info.message));
 
       const userTokens = userToken(user);
       const { password: pass, ...rest } = user.toObject();
-
       sendResponse(res, {
-        statusCode: 201,
+        statusCode: 200,
         success: true,
         message: "Login Successful",
         data: {
@@ -35,33 +29,44 @@ const loginCredentials = catchAsync(
     })(req, res, next);
   },
 );
+
 const getNewAccessToken = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const refreshToken = req.cookies.refreshToken;
     const tokenInfo = await authServices.getNewAccessToken(refreshToken);
     setAuthCookie(res, tokenInfo.accessToken);
     sendResponse(res, {
-      statusCode: 201,
+      statusCode: 200,
       success: true,
-      message: "new token Successful",
+      message: "New token generated",
       data: tokenInfo,
     });
   },
 );
+
 const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     req.logout((err) => {
       if (err) return next(err);
     });
-
     req.session.destroy((err) => {
       if (err) return next(err);
     });
-
-    res.clearCookie("accessToken", { httpOnly: true, secure: false, sameSite: "lax" });
-    res.clearCookie("refreshToken", { httpOnly: true, secure: false, sameSite: "lax" });
-    res.clearCookie("connect.sid", { httpOnly: true, secure: false, sameSite: "lax" });
-
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    res.clearCookie("connect.sid", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
     sendResponse(res, {
       statusCode: 200,
       success: true,
@@ -70,96 +75,88 @@ const logout = catchAsync(
     });
   },
 );
+
 const changePassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const oldPassword = req.body.oldPassword;
-    const getNewPassword = req.body.newPassword;
-
+    const { oldPassword, newPassword } = req.body;
     const decodedToken = req.user;
-    if (!decodedToken) {
+    if (!decodedToken)
       return sendResponse(res, {
         statusCode: 401,
         success: false,
         message: "User not authenticated",
         data: null,
       });
-    }
-    await authServices.resetPassword(oldPassword, getNewPassword, decodedToken);
+
+    await authServices.changePassword(oldPassword, newPassword, decodedToken);
     sendResponse(res, {
-      statusCode: 201,
+      statusCode: 200,
       success: true,
-      message: "Password changed Successful",
+      message: "Password changed successfully",
       data: null,
     });
   },
 );
+
 const resetPassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const oldPassword = req.body.oldPassword;
-    const getNewPassword = req.body.newPassword;
-
+    const { oldPassword, newPassword } = req.body;
     const decodedToken = req.user;
-    if (!decodedToken) {
+    if (!decodedToken)
       return sendResponse(res, {
         statusCode: 401,
         success: false,
         message: "User not authenticated",
         data: null,
       });
-    }
-    await authServices.resetPassword(oldPassword, getNewPassword, decodedToken);
+
+    await authServices.resetPassword(oldPassword, newPassword, decodedToken);
     sendResponse(res, {
-      statusCode: 201,
+      statusCode: 200,
       success: true,
-      message: "Password changed Successful",
+      message: "Password reset successfully",
       data: null,
     });
   },
 );
+
 const googleCallBack = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
     let state = req.query.state ? (req.query.state as string) : "";
-
-    if (state.startsWith("/")) {
-      state = state.slice(1);
-    }
-    if (!user) {
+    if (state.startsWith("/")) state = state.slice(1);
+    if (!user)
       return sendResponse(res, {
         statusCode: 400,
         success: false,
         message: "User not found",
         data: null,
       });
-    }
 
     const tokenInfo = userToken(user);
     setAuthCookie(res, tokenInfo);
     res.redirect(`${varEnv.FRONTEND_URL as string}/${state}`);
   },
 );
+
 const setPassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { password } = req.body;
     const decodedToken = req.user as JwtPayload;
-
-    if (!decodedToken) {
+    if (!decodedToken)
       return sendResponse(res, {
         statusCode: 401,
         success: false,
         message: "User not authenticated",
         data: null,
       });
-    }
-
-    if (!password) {
+    if (!password)
       return sendResponse(res, {
         statusCode: 400,
         success: false,
         message: "Password is required",
         data: null,
       });
-    }
 
     await authServices.setPassword(decodedToken.userId, password);
     sendResponse(res, {
@@ -171,12 +168,58 @@ const setPassword = catchAsync(
   },
 );
 
+const forgetPass = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+
+    if (!email) {
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: "Email is required",
+        data: null,
+      });
+    }
+
+    await authServices.forgetPassword(email);
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Password reset email sent",
+      data: null,
+    });
+  },
+);
+
+const resetPasswordWithToken = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword)
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: "Token and new password are required",
+        data: null,
+      });
+
+    await authServices.resetPasswordWithToken(token, newPassword);
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Password reset successfully",
+      data: null,
+    });
+  },
+);
+
 export const authControllers = {
   loginCredentials,
   getNewAccessToken,
   logout,
+  changePassword,
   resetPassword,
   googleCallBack,
-  changePassword,
   setPassword,
+  forgetPass,
+  resetPasswordWithToken,
 };
