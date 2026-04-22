@@ -9,7 +9,10 @@ const router = Router();
 router.post("/login", authControllers.loginCredentials);
 router.post("/refresh-token", authControllers.getNewAccessToken);
 router.post("/logout", authControllers.logout);
-router.get("/logout", authControllers.logout); // ✅ added
+router.get("/logout", authControllers.logout); 
+router.post("/forget-password", authControllers.forgetPass);
+router.post("/reset-password-token", authControllers.resetPasswordWithToken); 
+
 router.post(
   "/change-password",
   checkAuthentication(...Object.values(Role)),
@@ -20,6 +23,12 @@ router.post(
   checkAuthentication(...Object.values(Role)),
   authControllers.resetPassword,
 );
+router.post(
+  "/set-password",
+  checkAuthentication(...Object.values(Role)),
+  authControllers.setPassword,
+);
+
 router.get(
   "/google",
   async (req: Request, res: Response, next: NextFunction) => {
@@ -27,14 +36,11 @@ router.get(
     passport.authenticate("google", {
       scope: ["profile", "email"],
       state: redirect as string,
+      prompt: "select_account",
     })(req, res, next);
   },
 );
-router.post(
-  "/set-password",
-  checkAuthentication(...Object.values(Role)),
-  authControllers.setPassword,
-);
+
 router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "login" }),
