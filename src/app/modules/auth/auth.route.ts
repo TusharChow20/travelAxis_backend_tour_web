@@ -9,7 +9,8 @@ const router = Router();
 router.post("/login", authControllers.loginCredentials);
 router.post("/refresh-token", authControllers.getNewAccessToken);
 router.post("/logout", authControllers.logout);
-router.get("/logout", authControllers.logout); // ✅ added
+router.post("/logout", authControllers.logout);
+router.get("/forget-password", authControllers.forgetPass);
 router.post(
   "/change-password",
   checkAuthentication(...Object.values(Role)),
