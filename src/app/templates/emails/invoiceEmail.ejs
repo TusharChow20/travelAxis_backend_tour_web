@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background: #4f46e5;
+        padding: 24px;
+        text-align: center;
+      }
+      .header h1 {
+        color: white;
+        margin: 0;
+      }
+      .body {
+        padding: 32px;
+        color: #333;
+      }
+      .amount {
+        font-size: 24px;
+        font-weight: bold;
+        color: #4f46e5;
+      }
+      .footer {
+        text-align: center;
+        padding: 16px;
+        color: #888;
+        font-size: 12px;
+        background: #f9f9f9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header"><h1>Travel Axis 🌍</h1></div>
+      <div class="body">
+        <h2>Payment Successful!</h2>
+        <p>Hello <strong><%= userName %></strong>,</p>
+        <p>
+          Your payment for <strong><%= tourTitle %></strong> has been confirmed.
+        </p>
+        <p class="amount">Amount Paid: $<%= amount %></p>
+        <p>Transaction ID: <strong><%= transactionId %></strong></p>
+        <p>Please find your invoice attached to this email.</p>
+      </div>
+      <div class="footer">© 2026 Travel Axis. All rights reserved.</div>
+    </div>
+  </body>
+</html>

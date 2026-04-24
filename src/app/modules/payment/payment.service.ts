@@ -1,3 +1,5 @@
+import { generateInvoicePDF } from "../../utils/generateInvoice";
+import { sendMail } from "../../utils/seendEmail";
 import { BOOKING_STATUS } from "../booking/booking.interface";
 import { Booking } from "../booking/booking.model";
 import { ISSLCOMMERZ } from "../sslCommerz/sslCommerz.interface";
@@ -11,13 +13,10 @@ const successPayment = async (query: Record<string, string>) => {
   try {
     const updatedPayment = await Payment.findOneAndUpdate(
       { transactionId: query.transactionId } as any,
-
-      {
-        status: PAYMENT_STATUS.PAID,
-      },
-
+      { status: PAYMENT_STATUS.PAID },
       { session },
     );
+
     const updatedBooking = await Booking.findByIdAndUpdate(
       updatedPayment?.bookingId,
       { status: BOOKING_STATUS.COMPLETE },
@@ -30,13 +29,49 @@ const successPayment = async (query: Record<string, string>) => {
     await session.commitTransaction();
     session.endSession();
 
+    const user = updatedBooking?.user as any;
+    const tour = updatedBooking?.tour as any;
+
+    if (user && tour && updatedPayment) {
+      const invoiceBuffer = await generateInvoicePDF({
+        transactionId: updatedPayment.transactionId,
+        userName: user.name,
+        userEmail: user.email,
+        userPhone: user.phone,
+        tourTitle: tour.title,
+        amount: updatedPayment.amount,
+        paymentDate: new Date(),
+        bookingId: updatedPayment.bookingId.toString(),
+      });
+
+      await sendMail({
+        to: user.email,
+        subject: "Payment Successful - Your Invoice",
+        template: "invoiceEmail",
+        templateData: {
+          userName: user.name,
+          tourTitle: tour.title,
+          amount: updatedPayment.amount,
+          transactionId: updatedPayment.transactionId,
+        },
+        attachments: [
+          {
+            filename: `invoice-${updatedPayment.transactionId}.pdf`,
+            content: invoiceBuffer,
+            contentType: "application/pdf",
+          },
+        ],
+      });
+    }
+
     return { success: true, message: "Payment Done" };
   } catch (error) {
     await session.abortTransaction();
-    session.endSession(session);
+    session.endSession();
     throw error;
   }
 };
+
 const failPayment = async (query: Record<string, string>) => {
   const session = await Booking.startSession();
   session.startTransaction();
