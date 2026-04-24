@@ -1,7 +1,6 @@
 import bcryptjs from "bcryptjs";
 import { User } from "../user/user.model";
-import { Otp } from "./otp.model";
-import varEnv from "../../config/env";
+import redisClient from "../../config/redis.config";
 import { sendMail } from "../../utils/seendEmail";
 
 const generateOtp = () => {
@@ -12,18 +11,11 @@ const sendOtp = async (email: string) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error("User not found");
 
-  // Invalidate previous OTPs
-  await Otp.updateMany({ email, isUsed: false }, { isUsed: true });
-
   const otp = generateOtp();
   const hashedOtp = await bcryptjs.hash(otp, 10);
 
-  await Otp.create({
-    userId: user._id,
-    email,
-    otp: hashedOtp,
-    expiresAt: new Date(Date.now() + 5 * 60 * 1000), 
-  });
+  //Store hashed OTP in Redis with 5 min expiry
+  await redisClient.set(`otp:${email}`, hashedOtp, { EX: 300 });
 
   await sendMail({
     to: email,
@@ -40,23 +32,15 @@ const sendOtp = async (email: string) => {
 };
 
 const verifyOtp = async (email: string, otp: string) => {
-  const otpRecord = await Otp.findOne({
-    email,
-    isUsed: false,
-    expiresAt: { $gt: new Date() },
-  }).sort({ createdAt: -1 }); 
+  const hashedOtp = await redisClient.get(`otp:${email}`);
+  if (!hashedOtp) throw new Error("OTP expired or not found");
 
-  if (!otpRecord) throw new Error("OTP expired or not found");
-
-  const isMatch = await bcryptjs.compare(otp, otpRecord.otp);
+  const isMatch = await bcryptjs.compare(otp, hashedOtp);
   if (!isMatch) throw new Error("Invalid OTP");
 
-  // Mark OTP as used
-  otpRecord.isUsed = true;
-  await otpRecord.save();
+  await redisClient.del(`otp:${email}`);
 
-  // Mark user as verified
-  await User.findByIdAndUpdate(otpRecord.userId, { isVerified: true });
+  await User.findOneAndUpdate({ email }, { isVerified: true });
 
   return { message: "OTP verified successfully" };
 };
