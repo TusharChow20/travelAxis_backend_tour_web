@@ -60,7 +60,10 @@ const validatePayment = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getPaymentByBooking = catchAsync(async (req: Request, res: Response) => {
-  const result = await PaymentService.getPaymentByBooking(req.params.bookingId);
+  const bookingId = req.params.bookingId as string; 
+  if (!bookingId) throw new Error("Booking ID is required");
+
+  const result = await PaymentService.getPaymentByBooking(bookingId);
   sendResponse(res, {
     statusCode: 200,
     success: true,

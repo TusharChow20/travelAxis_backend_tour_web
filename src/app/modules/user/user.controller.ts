@@ -28,7 +28,12 @@ const getAllUser = catchAsync(
       success: true,
       message: "All user",
       data: users.users,
-      meta: users.meta,
+      meta: {
+        total: users.meta.total,
+        page: 1, 
+        limit: 10,
+        totalPage: Math.ceil(users.meta.total / 10),
+      },
     });
   },
 );
