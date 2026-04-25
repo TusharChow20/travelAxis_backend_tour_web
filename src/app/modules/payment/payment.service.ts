@@ -23,7 +23,6 @@ const uploadInvoiceToCloudinary = async (
       (error, result) => {
         if (error) return reject(error);
         if (!result) return reject(new Error("Cloudinary upload failed"));
-
         const downloadUrl = result.secure_url.replace(
           "/upload/",
           "/upload/fl_attachment/",
@@ -36,12 +35,14 @@ const uploadInvoiceToCloudinary = async (
 };
 
 const successPayment = async (query: Record<string, string>) => {
+  await SSLService.validatePayment(query);
+
   const session = await Booking.startSession();
   session.startTransaction();
   try {
     const updatedPayment = await Payment.findOneAndUpdate(
       { transactionId: query.transactionId } as any,
-      { status: PAYMENT_STATUS.PAID },
+      { status: PAYMENT_STATUS.PAID, paymentGateWay: query },
       { session, new: true },
     );
 
@@ -124,7 +125,7 @@ const failPayment = async (query: Record<string, string>) => {
     );
     await session.commitTransaction();
     session.endSession();
-    return { success: false, message: "Payment Fail" };
+    return { success: false, message: "Payment Failed" };
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
@@ -148,7 +149,7 @@ const cancelPayment = async (query: Record<string, string>) => {
     );
     await session.commitTransaction();
     session.endSession();
-    return { success: false, message: "Payment Canceled" };
+    return { success: false, message: "Payment Cancelled" };
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
@@ -159,6 +160,7 @@ const cancelPayment = async (query: Record<string, string>) => {
 const initializePayment = async (bookingId: string) => {
   const bookingPayment = await Payment.findOne({ bookingId });
   if (!bookingPayment) throw new Error("Booking does not exist");
+
   const booking = await Booking.findById(bookingId).populate(
     "user",
     "name email phone address",
@@ -180,9 +182,29 @@ const initializePayment = async (bookingId: string) => {
   return { paymentUrl: sslPayment.GatewayPageURL };
 };
 
+const validatePayment = async (body: Record<string, string>) => {
+  const { val_id, tran_id } = body;
+  if (!val_id || !tran_id) throw new Error("val_id and tran_id are required");
+
+  const validationResult = await SSLService.validatePayment({
+    val_id,
+    transactionId: tran_id,
+  });
+
+  return validationResult;
+};
+
+const getPaymentByBooking = async (bookingId: string) => {
+  const payment = await Payment.findOne({ bookingId }).populate("bookingId");
+  if (!payment) throw new Error("Payment not found");
+  return payment;
+};
+
 export const PaymentService = {
   successPayment,
   failPayment,
   cancelPayment,
   initializePayment,
+  validatePayment,
+  getPaymentByBooking,
 };
