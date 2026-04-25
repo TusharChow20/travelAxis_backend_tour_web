@@ -29,7 +29,12 @@ const getAllDivisions = catchAsync(async (req: Request, res: Response) => {
     success: true,
     message: "Divisions retrieved",
     data: result.data,
-    meta: result.meta,
+    meta: {
+      total: result.meta.total,
+      page: 1, 
+      limit: 10,
+      totalPage: Math.ceil(result.meta.total / 10),
+    },
   });
 });
 const updateDivision = catchAsync(async (req: Request, res: Response) => {
