@@ -111,6 +111,9 @@ passport.use(
         if (!passwordMatched) {
           return done(null, false, { message: "Password not matched" });
         }
+        if (!userExists.isVerified) {
+          return done(null, false, { message: "EMAIL_NOT_VERIFIED" });
+        }
 
         return done(null, userExists);
       } catch (error) {
