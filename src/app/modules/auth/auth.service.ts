@@ -18,15 +18,16 @@ const loginCredentials = async (payload: Partial<IUser>) => {
 
   const userExists = await User.findOne({ email });
   if (!userExists) throw new Error("User not exists");
-  if (!userExists.isVerified) {
-    throw new Error("EMAIL_NOT_VERIFIED");
-  }
+
   const passwordMatched = await bcryptjs.compare(
     password as string,
     userExists.password as string,
   );
-  if (!passwordMatched) throw new Error("Incorrect Password Try Again!");
 
+  if (!passwordMatched) throw new Error("Incorrect Password Try Again!");
+  if (!userExists.isVerified) {
+    throw new Error("EMAIL_NOT_VERIFIED");
+  }
   const userTokens = userToken(userExists);
   const { password: pass, ...rest } = userExists.toObject();
   return {
