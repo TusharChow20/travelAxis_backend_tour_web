@@ -92,6 +92,9 @@ passport.use(
             message: "Your account is not active",
           });
         }
+        if (!userExists.isVerified) {
+          return done(null, false, { message: "EMAIL_NOT_VERIFIED" });
+        }
 
         const userGoogleAuthenticated = userExists.auths.some(
           (providerObjects) => providerObjects.provider_name === "google",
