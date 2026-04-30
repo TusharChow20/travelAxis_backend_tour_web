@@ -3,6 +3,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import { PaymentService } from "./payment.service";
 import varEnv from "../../config/env";
 import { sendResponse } from "../../utils/sendResponse";
+import { JwtPayload } from "jsonwebtoken";
 
 const successPayment = catchAsync(async (req: Request, res: Response) => {
   // SSLCommerz sends data in body, transactionId in query
@@ -60,7 +61,7 @@ const validatePayment = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getPaymentByBooking = catchAsync(async (req: Request, res: Response) => {
-  const bookingId = req.params.bookingId as string; 
+  const bookingId = req.params.bookingId as string;
   if (!bookingId) throw new Error("Booking ID is required");
 
   const result = await PaymentService.getPaymentByBooking(bookingId);
@@ -68,6 +69,18 @@ const getPaymentByBooking = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: "Payment retrieved successfully",
+    data: result,
+  });
+});
+const getMyPayments = catchAsync(async (req: Request, res: Response) => {
+  const decoded = req.user as JwtPayload & { userId: string };
+  const userId = decoded.userId;
+
+  const result = await PaymentService.getMyPayments(userId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Payments retrieved successfully",
     data: result,
   });
 });
@@ -79,4 +92,5 @@ export const PaymentController = {
   initializePayment,
   validatePayment,
   getPaymentByBooking,
+  getMyPayments,
 };

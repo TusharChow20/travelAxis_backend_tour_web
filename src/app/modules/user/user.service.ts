@@ -54,24 +54,34 @@ const updateUser = async (
   decodedToken: JwtPayload,
 ) => {
   const userExists = await User.findById(userId);
-  if (!userExists) {
-    throw new Error("User not found");
-  }
+  if (!userExists) throw new Error("User not found");
+
   if (userExists.isDeleted || userExists.isActive === IsActive.BLOCKED) {
     throw new Error("This user cannot be updated");
   }
+
   if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
-    throw new Error("You are not authorized to change roles");
+    // ✅ Compare as strings to avoid ObjectId mismatch
+    if (decodedToken.userId?.toString() !== userId?.toString()) {
+      throw new Error("You can only update your own profile");
+    }
+
+    const restrictedFields: (keyof IUser)[] = [
+      "role",
+      "isActive",
+      "isDeleted",
+      "isVerified",
+    ];
+
+    for (const field of restrictedFields) {
+      if (payload[field] !== undefined) {
+        throw new Error(`You are not authorized to change ${field}`);
+      }
+    }
   }
 
   if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
-    throw new Error("You are not authorize to do that");
-  }
-
-  if (payload.isActive || payload.isDeleted || payload.isVerified) {
-    if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
-      throw new Error("You are not authorize to do that");
-    }
+    throw new Error("You are not authorized to assign SUPER_ADMIN role");
   }
 
   if (payload.password) {
@@ -81,13 +91,13 @@ const updateUser = async (
     );
   }
 
-  const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
+  const updatedUser = await User.findByIdAndUpdate(userId, payload, {
     new: true,
-    runValidators: true,
-  });
-  return newUpdatedUser;
-};
+    runValidators: false,
+  }).select("-password");
 
+  return updatedUser;
+};
 export const UserServices = {
   createUserService,
   getAllUsers,

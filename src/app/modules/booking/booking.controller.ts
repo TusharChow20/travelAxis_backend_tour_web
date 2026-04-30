@@ -17,6 +17,17 @@ const createBooking = catchAsync(async (req: Request, res: Response) => {
     data: booking,
   });
 });
+const getMyBookings = catchAsync(async (req: Request, res: Response) => {
+  const decodeToken = req.user as JwtPayload;
+  const result = await BookingService.getMyBookings(decodeToken.userId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Bookings retrieved successfully",
+    data: result,
+  });
+});
 export const BookingController = {
   createBooking,
+  getMyBookings,
 };

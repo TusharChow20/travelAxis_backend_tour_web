@@ -30,7 +30,7 @@ const getAllUser = catchAsync(
       data: users.users,
       meta: {
         total: users.meta.total,
-        page: 1, 
+        page: 1,
         limit: 10,
         totalPage: Math.ceil(users.meta.total / 10),
       },
@@ -41,9 +41,9 @@ const getAllUser = catchAsync(
 const updateUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.id;
+    const decodedToken = req.user as JwtPayload & { userId: string };
 
-    const verifiedToken = req.user;
-    if (!verifiedToken) {
+    if (!decodedToken) {
       return sendResponse(res, {
         statusCode: 401,
         success: false,
@@ -51,17 +51,21 @@ const updateUser = catchAsync(
         data: null,
       });
     }
-    const payload = req.body;
 
-    console.log(payload);
-    const user = await UserServices.updateUser(
-      userId as string,
-      payload,
-      verifiedToken,
-    );
+    if (!userId || Array.isArray(userId)) {
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: "Invalid user id",
+        data: null,
+      });
+    }
+
+    const payload = req.body;
+    const user = await UserServices.updateUser(userId, payload, decodedToken);
 
     sendResponse(res, {
-      statusCode: 201,
+      statusCode: 200,
       success: true,
       message: "User Updated Successfully",
       data: user,

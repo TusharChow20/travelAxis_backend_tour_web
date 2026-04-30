@@ -199,6 +199,20 @@ const getPaymentByBooking = async (bookingId: string) => {
   if (!payment) throw new Error("Payment not found");
   return payment;
 };
+const getMyPayments = async (userId: string) => {
+  // Find bookings by user first, then get payments
+  const bookings = await Booking.find({ user: userId }).select("_id");
+  const bookingIds = bookings.map((b) => b._id);
+
+  const payments = await Payment.find({ bookingId: { $in: bookingIds } })
+    .populate({
+      path: "bookingId",
+      populate: { path: "tour", select: "title" },
+    })
+    .sort({ createdAt: -1 });
+
+  return payments;
+};
 
 export const PaymentService = {
   successPayment,
@@ -207,4 +221,5 @@ export const PaymentService = {
   initializePayment,
   validatePayment,
   getPaymentByBooking,
+  getMyPayments,
 };

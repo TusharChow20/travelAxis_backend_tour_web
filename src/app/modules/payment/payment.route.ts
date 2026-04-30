@@ -23,5 +23,9 @@ router.get(
   checkAuthentication(...Object.values(Role)),
   PaymentController.getPaymentByBooking,
 );
-
+router.get(
+  "/my-payments",
+  checkAuthentication(...Object.values(Role)),
+  PaymentController.getMyPayments,
+);
 export const PaymentRoutes = router;
