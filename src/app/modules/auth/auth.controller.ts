@@ -41,7 +41,7 @@ const getNewAccessToken = catchAsync(
       statusCode: 200,
       success: true,
       message: "New token generated",
-      data: tokenInfo,
+      data: null,
     });
   },
 );
