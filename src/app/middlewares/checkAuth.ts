@@ -1,4 +1,3 @@
-// checkAuth.ts
 import { NextFunction, Request, Response } from "express";
 import { verifyToken } from "../utils/jwt";
 import varEnv from "../config/env";
@@ -8,14 +7,7 @@ export const checkAuthentication =
   (...roles: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) throw new Error("Unauthorized");
-
-      // ✅ Split "Bearer <token>" to get just the token
-      const token = authHeader.startsWith("Bearer ")
-        ? authHeader.split(" ")[1]
-        : authHeader;
-
+      const token = req.cookies.accessToken;
       if (!token) throw new Error("Unauthorized");
 
       const verifyToken1 = verifyToken(

@@ -14,7 +14,7 @@ const app = express();
 app.use(cookieParser());
 app.use(
   expressSession({
-    secret: "Your Secret",
+    secret: varEnv.EXPRESS_SESSION_SECRET as string,
     resave: false,
     saveUninitialized: false,
   }),
