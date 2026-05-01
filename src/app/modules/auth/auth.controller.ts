@@ -16,14 +16,16 @@ const loginCredentials = catchAsync(
 
       const userTokens = userToken(user);
       const { password: pass, ...rest } = user.toObject();
+
+      // set tokens as httpOnly cookies
+      setAuthCookie(res, userTokens);
+
       sendResponse(res, {
         statusCode: 200,
         success: true,
         message: "Login Successful",
         data: {
-          accessToken: userTokens.accessToken,
-          refreshToken: userTokens.refreshToken,
-          user: rest,
+          user: rest, // no tokens in body anymore
         },
       });
     })(req, res, next);
@@ -34,39 +36,46 @@ const getNewAccessToken = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const refreshToken = req.cookies.refreshToken;
     const tokenInfo = await authServices.getNewAccessToken(refreshToken);
-    setAuthCookie(res, tokenInfo.accessToken);
+    setAuthCookie(res, { accessToken: tokenInfo.accessToken });
     sendResponse(res, {
       statusCode: 200,
       success: true,
       message: "New token generated",
-      data: tokenInfo,
+      data: null,
     });
   },
 );
 
 const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    req.logout((err) => {
-      if (err) return next(err);
-    });
-    req.session.destroy((err) => {
-      if (err) return next(err);
-    });
+    try {
+      await new Promise<void>((resolve) => {
+        if (req.session) {
+          req.session.destroy(() => resolve());
+        } else {
+          resolve();
+        }
+      });
+    } catch (_) {}
+
+    const isProduction = varEnv.NODE_ENV === "production";
+
     res.clearCookie("accessToken", {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
     });
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
     });
     res.clearCookie("connect.sid", {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
     });
+
     sendResponse(res, {
       statusCode: 200,
       success: true,
@@ -75,7 +84,6 @@ const logout = catchAsync(
     });
   },
 );
-
 const changePassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { oldPassword, newPassword } = req.body;

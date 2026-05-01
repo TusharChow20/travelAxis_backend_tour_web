@@ -77,7 +77,7 @@ const getMe = catchAsync(
     const decodedToken = req.user as JwtPayload;
     const result = await UserServices.getMe(decodedToken.userId);
     sendResponse(res, {
-      statusCode: 201,
+      statusCode: 200,
       success: true,
       message: "User profile get",
       data: result,
