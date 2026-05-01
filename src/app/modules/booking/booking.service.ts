@@ -96,7 +96,16 @@ const createBooking = async (payload: Partial<IBooking>, userId: string) => {
     session.endSession();
   }
 };
-
+const getMyBookings = async (userId: string) => {
+  const bookings = await Booking.find({ user: userId })
+    .populate("tour", "title images costFrom")
+    .populate("payment")
+    .sort({ createdAt: -1 });
+  return bookings;
+};
 export const BookingService = {
   createBooking,
+
+  getMyBookings,
 };
+ 

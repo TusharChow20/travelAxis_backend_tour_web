@@ -12,4 +12,11 @@ router.post(
   validateUserRequest(createBookingZodValidation),
   BookingController.createBooking,
 );
+
+router.get(
+  "/my-bookings",
+  checkAuthentication(...Object.values(Role)),
+  BookingController.getMyBookings,
+);
+
 export const BookingRoutes = router;
