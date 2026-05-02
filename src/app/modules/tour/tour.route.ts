@@ -26,5 +26,5 @@ router.patch(
 router.get("/", TourController.getAllTours);
 router.get("/suggestions", TourController.getTourSuggestions);
 router.get("/", TourController.getAllTours);
-
+router.get("/:slug", TourController.getSingleTour);
 export const TourRoute = router;

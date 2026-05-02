@@ -119,11 +119,19 @@ const getTourSuggestions = async (searchTerm: string) => {
 
   return results.map((r) => r.item);
 };
+const getSingleTour = async (slug: string) => {
+  const tour = await Tour.findOne({ slug })
+    .populate("division", "name slug thumbnail")
+    .populate("tourDuration", "name");
 
+  if (!tour) throw new Error("Tour not found");
+  return tour;
+};
 export const TourService = {
   createTour,
   updateTour,
   deleteTour,
   getAllTours,
   getTourSuggestions,
+  getSingleTour,
 };
