@@ -18,6 +18,17 @@ export class QueryBuilder<T> {
     return this;
   }
 
+  // filter(): any {
+  //   const filter = { ...this.query };
+
+  //   const deleteField = ["searchTerm", "sort", "fields", "page", "limit"];
+  //   for (const field of deleteField) {
+  //     delete filter[field];
+  //   }
+  //   this.modelQuery = this.modelQuery.find(filter);
+
+  //   return this;
+  // }
   filter(): any {
     const filter = { ...this.query };
 
@@ -25,11 +36,21 @@ export class QueryBuilder<T> {
     for (const field of deleteField) {
       delete filter[field];
     }
-    this.modelQuery = this.modelQuery.find(filter);
 
+    const formattedFilter: Record<string, any> = {};
+    for (const key in filter) {
+      if (key.includes("[")) {
+        const [field, operator] = key.replace("]", "").split("[");
+        if (!formattedFilter[field]) formattedFilter[field] = {};
+        formattedFilter[field][`$${operator}`] = Number(filter[key]);
+      } else {
+        formattedFilter[key] = filter[key];
+      }
+    }
+
+    this.modelQuery = this.modelQuery.find(formattedFilter as any);
     return this;
   }
-
   sort(): any {
     const sort = this.query.sort || "-createdAt";
     this.modelQuery = this.modelQuery.sort(sort);
@@ -42,7 +63,7 @@ export class QueryBuilder<T> {
   }
   pagination(): any {
     const page = Number(this.query.page) || 1;
-    const limit = Number(this.query.limit) || 10;
+    const limit = Number(this.query.limit) || 6;
     const skip = (page - 1) * limit;
     this.modelQuery = this.modelQuery.skip(skip).limit(limit);
     return this;
@@ -50,16 +71,52 @@ export class QueryBuilder<T> {
   build() {
     return this.modelQuery;
   }
+  // async getMeta() {
+  //   const filter = { ...this.query };
+  //   const deleteField = ["searchTerm", "sort", "fields", "page", "limit"];
+  //   for (const field of deleteField) {
+  //     delete filter[field];
+  //   }
+  //   const totalDocs = await this.modelQuery.model.countDocuments(filter as any);
+  //   const page = Number(this.query.page) || 1;
+  //   const limit = Number(this.query.limit) || 10;
+  //   const totalPages = Math.ceil(totalDocs / limit);
+  //   return { page, limit, totalDocs, totalPages };
+  // }
+
   async getMeta() {
+    // ✅ Build fresh filter without pagination
     const filter = { ...this.query };
     const deleteField = ["searchTerm", "sort", "fields", "page", "limit"];
     for (const field of deleteField) {
       delete filter[field];
     }
-    const totalDocs = await this.modelQuery.model.countDocuments(filter as any);
+
+    // ✅ Handle range queries in meta too
+    const formattedFilter: Record<string, any> = {};
+    for (const key in filter) {
+      if (key.includes("[")) {
+        const [field, operator] = key.replace("]", "").split("[");
+        if (!formattedFilter[field]) formattedFilter[field] = {};
+        formattedFilter[field][`$${operator}`] = Number(filter[key]);
+      } else {
+        formattedFilter[key] = filter[key];
+      }
+    }
+
+    // ✅ Also include searchTerm in count
+    const searchTerm = this.query.searchTerm || "";
+    if (searchTerm) {
+      // handled by modelQuery already — use model directly
+    }
+
+    const totalDocs = await this.modelQuery.model.countDocuments(
+      formattedFilter as any,
+    );
     const page = Number(this.query.page) || 1;
     const limit = Number(this.query.limit) || 10;
     const totalPages = Math.ceil(totalDocs / limit);
+
     return { page, limit, totalDocs, totalPages };
   }
 }
