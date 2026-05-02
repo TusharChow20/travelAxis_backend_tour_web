@@ -73,9 +73,20 @@ const getTourSuggestions = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getSingleTour = catchAsync(async (req: Request, res: Response) => {
+  const slug = req.params.slug as string;
+  const result = await TourService.getSingleTour(slug);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Tour retrieved successfully",
+    data: result,
+  });
+});
 export const TourController = {
   createTour,
   updateTour,
   getAllTours,
   getTourSuggestions,
+  getSingleTour,
 };
