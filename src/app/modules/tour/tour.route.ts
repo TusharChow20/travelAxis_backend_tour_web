@@ -18,11 +18,13 @@ router.post(
 router.patch(
   "/:id",
   checkAuthentication(Role.ADMIN, Role.SUPER_ADMIN),
-  multerUpload.array("files"), 
+  multerUpload.array("files"),
   validateUserRequest(updateTourZodSchema),
   TourController.updateTour,
 );
 
+router.get("/", TourController.getAllTours);
+router.get("/suggestions", TourController.getTourSuggestions);
 router.get("/", TourController.getAllTours);
 
 export const TourRoute = router;

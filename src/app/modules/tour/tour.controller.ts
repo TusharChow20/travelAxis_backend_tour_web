@@ -4,7 +4,6 @@ import { TourService } from "./tour.service";
 import { sendResponse } from "../../utils/sendResponse";
 import { ITour } from "./tour.interface";
 
-
 const parseBody = (body: any): Record<string, unknown> => {
   if (!body?.data || body.data === "undefined") return body ?? {};
   try {
@@ -16,7 +15,7 @@ const parseBody = (body: any): Record<string, unknown> => {
 
 const createTour = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const body = parseBody(req.body); 
+    const body = parseBody(req.body);
     const files = req.files as Express.Multer.File[];
 
     const payload: Partial<ITour> = {
@@ -63,9 +62,20 @@ const getAllTours = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getTourSuggestions = catchAsync(async (req: Request, res: Response) => {
+  const searchTerm = req.query.q as string;
+  const result = await TourService.getTourSuggestions(searchTerm);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Suggestions retrieved",
+    data: result,
+  });
+});
 
 export const TourController = {
   createTour,
   updateTour,
   getAllTours,
+  getTourSuggestions,
 };
