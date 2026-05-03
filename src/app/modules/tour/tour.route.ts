@@ -22,6 +22,11 @@ router.patch(
   validateUserRequest(updateTourZodSchema),
   TourController.updateTour,
 );
+router.delete(
+  "/:id",
+  checkAuthentication(Role.ADMIN, Role.SUPER_ADMIN),
+  TourController.deleteTour,
+);
 
 router.get("/", TourController.getAllTours);
 router.get("/suggestions", TourController.getTourSuggestions);

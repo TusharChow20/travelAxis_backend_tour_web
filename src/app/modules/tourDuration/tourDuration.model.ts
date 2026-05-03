@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { ITourDuration } from "./tourDuration.interface";
 
 const tourDurationSchema = new Schema<ITourDuration>(
@@ -6,7 +6,6 @@ const tourDurationSchema = new Schema<ITourDuration>(
   { timestamps: true },
 );
 
-export const TourDuration = model<ITourDuration>(
-  "TourDuration",
-  tourDurationSchema,
-);
+export const TourDuration =
+  mongoose.models.TourDuration ||
+  mongoose.model<ITourDuration>("TourDuration", tourDurationSchema);
