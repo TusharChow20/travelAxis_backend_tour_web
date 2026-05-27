@@ -9,9 +9,9 @@ const router = Router();
 router.post("/login", authControllers.loginCredentials);
 router.post("/refresh-token", authControllers.getNewAccessToken);
 router.post("/logout", authControllers.logout);
-router.get("/logout", authControllers.logout); 
+router.get("/logout", authControllers.logout);
 router.post("/forget-password", authControllers.forgetPass);
-router.post("/reset-password-token", authControllers.resetPasswordWithToken); 
+router.post("/reset-password-token", authControllers.resetPasswordWithToken);
 
 router.post(
   "/change-password",
@@ -37,13 +37,16 @@ router.get(
       scope: ["profile", "email"],
       state: redirect as string,
       prompt: "select_account",
+      session: false,
     })(req, res, next);
   },
 );
-
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "login" }),
+  passport.authenticate("google", {
+    failureRedirect: `${process.env.FRONTEND_URL}/login`,
+    session: false,
+  }),
   authControllers.googleCallBack,
 );
 

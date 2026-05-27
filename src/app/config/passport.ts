@@ -11,6 +11,7 @@ import { Strategy as localStrategy } from "passport-local";
 import bcryptjs from "bcryptjs";
 
 passport.use(
+  
   new GoogleStrategy(
     {
       clientID: varEnv.GOOGLE_CLIENT_ID as string,
