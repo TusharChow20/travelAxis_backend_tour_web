@@ -11,6 +11,14 @@ import varEnv from "./app/config/env";
 
 const app = express();
 
+// ✅ CORS must be FIRST — before everything
+app.use(
+  cors({
+    origin: varEnv.FRONTEND_URL,
+    credentials: true,
+  }),
+);
+
 app.use(cookieParser());
 app.use(
   expressSession({
@@ -22,16 +30,8 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-//call the json for getting or sending the jsonb data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-//cors implement
-app.use(
-  cors({
-    origin: varEnv.FRONTEND_URL,
-    credentials: true,
-  }),
-);
 
 app.use("/api/v1", router);
 app.get("/", async (req: Request, res: Response) => {
@@ -40,9 +40,7 @@ app.get("/", async (req: Request, res: Response) => {
   });
 });
 
-//global error handler
 app.use(globalErrorHandler);
-
 app.use(notFound);
 
 export default app;

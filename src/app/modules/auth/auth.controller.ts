@@ -131,8 +131,6 @@ const resetPassword = catchAsync(
 const googleCallBack = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    let state = req.query.state ? (req.query.state as string) : "";
-    if (state.startsWith("/")) state = state.slice(1);
     if (!user)
       return sendResponse(res, {
         statusCode: 400,
@@ -143,7 +141,9 @@ const googleCallBack = catchAsync(
 
     const tokenInfo = userToken(user);
     setAuthCookie(res, tokenInfo);
-    res.redirect(`${varEnv.FRONTEND_URL as string}/${state}`);
+
+    // ✅ Always redirect to auth-callback — it handles role-based routing
+    res.redirect(`${varEnv.FRONTEND_URL as string}/auth-callback`);
   },
 );
 
