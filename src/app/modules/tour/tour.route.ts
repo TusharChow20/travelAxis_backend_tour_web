@@ -31,5 +31,6 @@ router.delete(
 router.get("/", TourController.getAllTours);
 router.get("/suggestions", TourController.getTourSuggestions);
 router.get("/", TourController.getAllTours);
+router.get("/price-range", TourController.getPriceRange);
 router.get("/:slug", TourController.getSingleTour);
 export const TourRoute = router;
