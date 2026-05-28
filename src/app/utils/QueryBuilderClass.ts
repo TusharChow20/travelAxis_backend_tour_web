@@ -40,7 +40,10 @@ export class QueryBuilder<T> {
     const formattedFilter: Record<string, any> = {};
     for (const key in filter) {
       if (key.includes("[")) {
-        const [field, operator] = key.replace("]", "").split("[");
+        const parts = key.replace("]", "").split("[");
+        const field = parts[0];
+        const operator = parts[1];
+        if (!field || !operator) continue;
         if (!formattedFilter[field]) formattedFilter[field] = {};
         formattedFilter[field][`$${operator}`] = Number(filter[key]);
       } else {
@@ -96,7 +99,10 @@ export class QueryBuilder<T> {
     const formattedFilter: Record<string, any> = {};
     for (const key in filter) {
       if (key.includes("[")) {
-        const [field, operator] = key.replace("]", "").split("[");
+        const parts = key.replace("]", "").split("[");
+        const field = parts[0];
+        const operator = parts[1];
+        if (!field || !operator) continue;
         if (!formattedFilter[field]) formattedFilter[field] = {};
         formattedFilter[field][`$${operator}`] = Number(filter[key]);
       } else {

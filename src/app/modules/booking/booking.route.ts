@@ -4,7 +4,6 @@ import { Role } from "../user/user.interface";
 import { BookingController } from "./booking.controller";
 import { validateUserRequest } from "../../middlewares/userValidateRequest";
 import { createBookingZodValidation } from "./booking.validate";
-import { Role } from "../user/user.interface";
 const router = express.Router();
 router.post(
   "/",
