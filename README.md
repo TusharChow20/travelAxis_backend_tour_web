@@ -2,7 +2,7 @@
 
 The REST API backend for TravelAxis BD. Built with Express.js and MongoDB, it handles authentication, tour management, bookings, payments via SSLCommerz, invoice generation, and email delivery.
 
-🔗 API Base URL: https://backend-travel-axis.vercel.app/api/v1  
+🔗 API Base URL: http://localhost:5000/api/v1  
 🔗 Frontend Repo: https://github.com/TusharChow20/travel-axis-frontend
 
 ---
