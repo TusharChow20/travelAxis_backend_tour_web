@@ -63,19 +63,25 @@
         <p>
           Your payment for <strong><%= tourTitle %></strong> has been confirmed.
         </p>
-        <p class="amount">Amount Paid: $<%= amount %></p>
+        <p class="amount">Amount Paid: ৳<%= amount %></p>
         <p>Transaction ID: <strong><%= transactionId %></strong></p>
         <p>
           Your invoice is attached to this email and can also be downloaded
           below:
         </p>
-
-        <!-- ✅ Download button with Cloudinary URL -->
         <a href="<%= invoiceURL %>" class="btn" download>
           ⬇ Download Invoice
         </a>
       </div>
-      <div class="footer">© 2026 Travel Axis. All rights reserved.</div>
+      <div class="footer">
+        © 2026 Travel Axis. All rights reserved.<br />
+        Developed by
+        <a
+          href="https://tushar-chowdhury-protfolio.vercel.app/"
+          style="color: #4f46e5"
+          >Tushar Chowdhury</a
+        >
+      </div>
     </div>
   </body>
 </html>
