@@ -18,5 +18,10 @@ router.get(
   checkAuthentication(...Object.values(Role)),
   BookingController.getMyBookings,
 );
+router.get(
+  "/all",
+  checkAuthentication(Role.ADMIN, Role.SUPER_ADMIN),
+  BookingController.getAllBookings,
+);
 
 export const BookingRoutes = router;

@@ -31,13 +31,20 @@ const updateTour = async (id: string, payload: Partial<ITour>) => {
     const baseSlug = payload.title.toLowerCase().split(" ").join("-");
     let slug = baseSlug;
     let counter = 0;
-    while (await Tour.exists({ slug })) {
+    while (await Tour.exists({ slug, _id: { $ne: id } })) {
       slug = `${baseSlug}-${counter++}`;
     }
     payload.slug = slug;
   }
+
+  // Only try to delete if there are actual existing images
   if (payload.images?.length && existingTour.images?.length) {
-    await deleteImagesFromCloud(existingTour.images);
+    try {
+      await deleteImagesFromCloud(existingTour.images);
+    } catch (err) {
+      // Log but don't throw — old images may already be gone
+      console.warn("Could not delete old images from Cloudinary:", err);
+    }
   }
 
   return await Tour.findByIdAndUpdate(id, payload, { new: true });
@@ -127,6 +134,24 @@ const getSingleTour = async (slug: string) => {
   if (!tour) throw new Error("Tour not found");
   return tour;
 };
+
+const getPriceRange = async () => {
+  const result = await Tour.aggregate([
+    { $match: { costFrom: { $exists: true, $ne: null } } },
+    {
+      $group: {
+        _id: null,
+        min: { $min: "$costFrom" },
+        max: { $max: "$costFrom" },
+      },
+    },
+  ]);
+  return {
+    min: result[0]?.min ?? 0,
+    max: result[0]?.max ?? 50000,
+  };
+};
+
 export const TourService = {
   createTour,
   updateTour,
@@ -134,4 +159,5 @@ export const TourService = {
   getAllTours,
   getTourSuggestions,
   getSingleTour,
+  getPriceRange,
 };

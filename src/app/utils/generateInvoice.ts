@@ -16,7 +16,6 @@ export const generateInvoicePDF = (data: IInvoiceData): Promise<Buffer> => {
     const doc = new PDFDocument({ margin: 50 });
     const chunks: Buffer[] = [];
 
-    // Collect PDF chunks into buffer
     doc.on("data", (chunk) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
@@ -83,7 +82,9 @@ export const generateInvoicePDF = (data: IInvoiceData): Promise<Buffer> => {
       .fillColor("#4F46E5")
       .fontSize(18)
       .font("Helvetica-Bold")
-      .text(`Total Amount: $${data.amount.toFixed(2)}`, { align: "right" })
+      .text(`Total Amount: BDT ${data.amount.toFixed(2)}`, {
+        align: "right",
+      })
       .moveDown(2);
 
     // ── Footer ───────────────────────────────────────
@@ -92,7 +93,20 @@ export const generateInvoicePDF = (data: IInvoiceData): Promise<Buffer> => {
       .fontSize(10)
       .font("Helvetica")
       .text("Thank you for choosing Travel Axis!", { align: "center" })
-      .text("For support: support@travelaxis.com", { align: "center" });
+      .text("For support: support@travelaxis.com", { align: "center" })
+      .moveDown(0.5);
+
+    // Developer credit with clickable link
+    doc
+      .fillColor("#aaa")
+      .fontSize(9)
+      .text("Developed by ", { align: "center", continued: true })
+      .fillColor("#4F46E5")
+      .text("Tushar Chowdhury", {
+        align: "center",
+        link: "https://tushar-chowdhury-protfolio.vercel.app/",
+        underline: true,
+      });
 
     doc.end();
   });

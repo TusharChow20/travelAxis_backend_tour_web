@@ -31,14 +31,31 @@ const createUserService = async (payload: Partial<IUser>) => {
   return user;
 };
 
-const getAllUsers = async () => {
-  const users = await User.find({});
-  const totalUsers = await User.countDocuments();
+const getAllUsers = async (query: Record<string, string>) => {
+  const { searchTerm, page = "1", limit = "10" } = query;
+
+  const filter: any = { isDeleted: false };
+
+  if (searchTerm) {
+    filter.$or = [
+      { name: { $regex: searchTerm, $options: "i" } },
+      { email: { $regex: searchTerm, $options: "i" } },
+    ];
+  }
+
+  const skip = (Number(page) - 1) * Number(limit);
+  const [users, total] = await Promise.all([
+    User.find(filter)
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit)),
+    User.countDocuments(filter),
+  ]);
+
   return {
     users,
-    meta: {
-      total: totalUsers,
-    },
+    meta: { total, page: Number(page), limit: Number(limit) },
   };
 };
 const getMe = async (userId: string) => {

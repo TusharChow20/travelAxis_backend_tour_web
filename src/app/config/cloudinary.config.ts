@@ -9,19 +9,27 @@ cloudinary.config({
 
 export const deleteImageFromCloud = async (url: string): Promise<void> => {
   try {
+    //  Skip empty or non-cloudinary URLs
+    if (!url || !url.includes("cloudinary.com")) return;
+
     const urlParts = url.split("/");
     const uploadIndex = urlParts.indexOf("upload");
+    if (uploadIndex === -1) return; // ✅ not a valid cloudinary URL
+
     const publicIdWithExtension = urlParts.slice(uploadIndex + 2).join("/");
-    const publicId = publicIdWithExtension.replace(/\.[^/.]+$/, ""); // strip extension
+    const publicId = publicIdWithExtension.replace(/\.[^/.]+$/, "");
 
     const result = await cloudinary.uploader.destroy(publicId);
 
-    if (result.result !== "ok") {
-      throw new Error(`Cloudinary delete failed: ${result.result}`);
+    //  "not found" is not a fatal error — image may have been deleted already
+    if (result.result !== "ok" && result.result !== "not found") {
+      console.warn(
+        `Cloudinary delete warning: ${result.result} for ${publicId}`,
+      );
     }
   } catch (error) {
-    console.error("deleteImageFromCloud error:", error);
-    throw error;
+    //  Never throw — deletion failure should not block uploads
+    console.warn("deleteImageFromCloud warning:", error);
   }
 };
 

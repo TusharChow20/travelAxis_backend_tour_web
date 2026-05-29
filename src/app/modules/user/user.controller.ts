@@ -20,23 +20,23 @@ const createUser = catchAsync(
   },
 );
 
-const getAllUser = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const users = await UserServices.getAllUsers();
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "All user",
-      data: users.users,
-      meta: {
-        total: users.meta.total,
-        page: 1,
-        limit: 10,
-        totalPage: Math.ceil(users.meta.total / 10),
-      },
-    });
-  },
-);
+const getAllUser = catchAsync(async (req, res, next) => {
+  const users = await UserServices.getAllUsers(
+    req.query as Record<string, string>,
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "All users",
+    data: users,
+    meta: {
+      total: users.meta.total,
+      page: users.meta.page,
+      limit: users.meta.limit,
+      totalPage: Math.ceil(users.meta.total / users.meta.limit),
+    },
+  });
+});
 
 const updateUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {

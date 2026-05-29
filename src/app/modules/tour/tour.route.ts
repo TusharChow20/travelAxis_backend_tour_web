@@ -8,6 +8,7 @@ import { multerUpload } from "../../config/multer.config";
 
 const router = Router();
 
+// POST
 router.post(
   "/create-tour",
   checkAuthentication(Role.ADMIN, Role.SUPER_ADMIN),
@@ -15,6 +16,7 @@ router.post(
   TourController.createTour,
 );
 
+// PATCH
 router.patch(
   "/:id",
   checkAuthentication(Role.ADMIN, Role.SUPER_ADMIN),
@@ -22,14 +24,17 @@ router.patch(
   validateUserRequest(updateTourZodSchema),
   TourController.updateTour,
 );
+
+// DELETE
 router.delete(
   "/:id",
   checkAuthentication(Role.ADMIN, Role.SUPER_ADMIN),
   TourController.deleteTour,
 );
 
-router.get("/", TourController.getAllTours);
+// GET — specific routes MUST come before /:slug
+router.get("/price-range", TourController.getPriceRange);
 router.get("/suggestions", TourController.getTourSuggestions);
 router.get("/", TourController.getAllTours);
-router.get("/:slug", TourController.getSingleTour);
+router.get("/:slug", TourController.getSingleTour); // ← always last
 export const TourRoute = router;

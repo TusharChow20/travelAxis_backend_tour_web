@@ -93,6 +93,16 @@ const deleteTour = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPriceRange = catchAsync(async (req: Request, res: Response) => {
+  const result = await TourService.getPriceRange();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Price range retrieved",
+    data: result,
+  });
+});
+
 export const TourController = {
   createTour,
   updateTour,
@@ -100,4 +110,5 @@ export const TourController = {
   getTourSuggestions,
   getSingleTour,
   deleteTour,
+  getPriceRange,
 };

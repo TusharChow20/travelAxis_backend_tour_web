@@ -13,6 +13,7 @@ export const setAuthCookie = (res: Response, tokenInfo: IAuthToken) => {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
+      maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
     });
   }
   if (tokenInfo.refreshToken) {
@@ -20,6 +21,7 @@ export const setAuthCookie = (res: Response, tokenInfo: IAuthToken) => {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
   }
 };

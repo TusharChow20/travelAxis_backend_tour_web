@@ -103,9 +103,17 @@ const getMyBookings = async (userId: string) => {
     .sort({ createdAt: -1 });
   return bookings;
 };
+
+const getAllBookings = async () => {
+  const bookings = await Booking.find()
+    .populate("user", "name email picture")
+    .populate("tour", "title images costFrom")
+    .populate("payment")
+    .sort({ createdAt: -1 });
+  return bookings;
+};
 export const BookingService = {
   createBooking,
-
+  getAllBookings,
   getMyBookings,
 };
- 

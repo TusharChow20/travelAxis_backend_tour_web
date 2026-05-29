@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { deleteImageFromCloud } from "../config/cloudinary.config";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 
 export const globalErrorHandler = async (
   err: any,
@@ -12,10 +13,9 @@ export const globalErrorHandler = async (
     await deleteImageFromCloud(req.file.path);
   }
 
-  // Delete multiple files on error
   if (req.files && Array.isArray(req.files) && req.files.length > 0) {
     const imageUrls = (req.files as Express.Multer.File[]).map(
-      (file) => file.path, 
+      (file) => file.path,
     );
     await Promise.all(imageUrls.map((url) => deleteImageFromCloud(url)));
   }
@@ -25,11 +25,18 @@ export const globalErrorHandler = async (
       field: e.path.join("."),
       message: e.message,
     }));
-
     return res.status(400).json({
       success: false,
       message: "Validation failed",
       errors: formattedErrors,
+    });
+  }
+
+  // JWT errors → always 401
+  if (err instanceof JsonWebTokenError || err instanceof TokenExpiredError) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized",
     });
   }
 

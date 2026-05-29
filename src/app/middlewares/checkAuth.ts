@@ -8,7 +8,10 @@ export const checkAuthentication =
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = req.cookies.accessToken;
-      if (!token) throw new Error("Unauthorized");
+      if (!token) {
+        res.status(401).json({ success: false, message: "Unauthorized" });
+        return;
+      }
 
       const verifyToken1 = verifyToken(
         token,
@@ -16,12 +19,16 @@ export const checkAuthentication =
       ) as JwtPayload;
 
       if (!roles.includes(verifyToken1.role)) {
-        throw new Error("Forbidden: Insufficient permissions");
+        res.status(403).json({
+          success: false,
+          message: "Forbidden: Insufficient permissions",
+        });
+        return;
       }
 
       req.user = verifyToken1;
       next();
     } catch (error) {
-      next(error);
+      res.status(401).json({ success: false, message: "Unauthorized" });
     }
   };
